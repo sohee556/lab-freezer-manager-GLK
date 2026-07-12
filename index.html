@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>-80°C Freezer Manager</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-50 min-h-screen p-8 text-slate-800 font-sans">
+
+  <div class="max-w-3xl mx-auto">
+    <header class="mb-8 text-center">
+      <h1 class="text-3xl font-bold text-slate-900">Lab Freezer Manager</h1>
+      <p class="text-slate-500 mt-2">Box 1 Inventory (9x9 Grid)</p>
+    </header>
+
+    <div id="loading" class="text-center text-blue-500 font-semibold my-10">Loading inventory data...</div>
+    <div id="error-state" class="hidden text-center text-red-600 font-semibold my-10"></div>
+
+    <div id="grid-container" class="hidden grid grid-cols-9 gap-1 bg-white p-4 rounded-lg shadow-md border border-slate-200">
+      </div>
+  </div>
+
+  <div id="modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-lg shadow-xl w-full max-w-md p-6">
+      <h2 class="text-xl font-bold mb-4">Add Protein to <span id="modal-title-coords" class="text-blue-600"></span></h2>
+      
+      <form id="add-sample-form" class="space-y-4">
+        <input type="hidden" id="input-box" value="1">
+        <input type="hidden" id="input-col-letter">
+        <input type="hidden" id="input-row-number">
+
+        <div>
+          <label class="block text-sm font-medium mb-1">Protein Name</label>
+          <input type="text" id="input-name" required class="w-full border border-slate-300 rounded p-2 focus:ring-2 focus:ring-blue-500 focus:outline-none">
+        </div>
+        
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium mb-1">Concentration</label>
+            <input type="text" id="input-conc" placeholder="e.g., 5 mg/mL" class="w-full border border-slate-300 rounded p-2 focus:ring-2 focus:ring-blue-500 focus:outline-none">
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1">Origin / Source</label>
+            <input type="text" id="input-origin" required class="w-full border border-slate-300 rounded p-2 focus:ring-2 focus:ring-blue-500 focus:outline-none">
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium mb-1">Notes</label>
+          <textarea id="input-notes" rows="2" class="w-full border border-slate-300 rounded p-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"></textarea>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium mb-1">Date</label>
+          <input type="date" id="input-date" required class="w-full border border-slate-300 rounded p-2 focus:ring-2 focus:ring-blue-500 focus:outline-none">
+        </div>
+
+        <div class="flex justify-end space-x-3 mt-6">
+          <button type="button" id="btn-cancel" class="px-4 py-2 text-slate-600 bg-slate-100 hover:bg-slate-200 rounded">Cancel</button>
+          <button type="submit" id="btn-submit" class="px-4 py-2 text-white bg-blue-600 hover:bg-blue-700 rounded shadow">Save Protein</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    // --- CONFIGURATION ---
+    const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTcldimUxMS_yA9IJRwQMTt3Kx5KyTqHwp9JiCL0IPmvLtdENtLfva2SI5sY0VpOJNh6TKligQFE-W4/pub?output=csv'; 
+    const GAS_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbxaLydtVy68ZjSykmAzstp03ijU143eDker01efasPw0OjJvb_3nfqjHSuPsFnFeU0BfQ/exec';
+    const BOX_ID = "1";
+
+    const gridContainer = document.getElementById('grid-container');
+    const loadingState = document.getElementById('loading');
+    const errorState = document.getElementById('error-state');
+    const modal = document.getElementById('modal');
+    const form = document.getElementById('add-sample-form');
+    
+    let occupiedSlots = {}; 
+
+    // Robust CSV row parser to handle commas wrapped in quotes (e.g., in Notes)
+    function parseCSVRow(str) {
+      let result = [];
+      let current = '';
+      let inQuotes = false;
+      for (let i = 0; i < str.length; i++) {
+        let char = str[i];
+        if (char === '"' && str[i+1] === '"') {
+          current += '"'; i++; // Handle escaped quotes
+        } else if (char === '"') {
+          inQuotes = !inQuotes;
+        } else if (char === ',' && !inQuotes) {
+          result.push(current.trim());
+          current = '';
+        } else {
+          current += char;
+        }
+      }
+      result.push(current.trim());
+      return result;
+    }
+
+    async function init() {
+      await fetchInventoryData();
+    }
+
+    async function fetchInventoryData() {
+      try {
+        const response = await fetch(CSV_URL);
+        if (!response.ok) throw new Error(`HTTP Error: ${response.status}`);
+        
+        const csvText = await response.text();
+        
+        // Split by newlines, accommodating both Windows (\r\n) and Mac/Linux (\n)
+        const rows = csvText.split(/\r?\n/).slice(1); 
+        
+        rows.forEach(row => {
+          if (!row.trim()) return;
+          
+          const cols = parseCSVRow(row);
+          // Expected: Box(0), ColLetter(1), RowNum(2), Name(3), Conc(4), Origin(5), Notes(6), Date(7)
+          if (cols.length >= 8 && cols[0] === BOX_ID) {
+            const colLetter = cols[1];
+            const rowNum = cols[2];
+            
+            const tooltipText = 
+              `Protein: ${cols[3]} (${cols[4] || 'N/A'})\n` +
+              `Origin: ${cols[5]}\n` +
+              `Notes: ${cols[6]}\n` +
+              `Date: ${cols[7]}`;
+              
+            occupiedSlots[`${colLetter}${rowNum}`] = tooltipText;
+          }
+        });
+        
+        renderGrid();
+      } catch (error) {
+        console.error('CSV Parsing Error:', error);
+        loadingState.classList.add('hidden');
+        errorState.classList.remove('hidden');
+        errorState.innerText = `Error loading CSV: ${error.message}. Please check your published CSV URL format.`;
+      }
+    }
+
+    function renderGrid() {
+      loadingState.classList.add('hidden');
+      gridContainer.classList.remove('hidden');
+      gridContainer.innerHTML = '';
+
+      const letters = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I'];
+      
+      // Outer loop is numbers (Rows visually), Inner loop is letters (Columns visually)
+      // This ensures A1 is top-left, A2 is directly below it.
+      for (let num = 1; num <= 9; num++) {
+        letters.forEach(letter => {
+          const slotId = `${letter}${num}`;
+          const cell = document.createElement('div');
+          
+          cell.className = 'aspect-square flex items-center justify-center rounded text-xs font-medium transition-colors border border-slate-200';
+          
+          if (occupiedSlots[slotId]) {
+            cell.classList.add('bg-blue-100', 'text-blue-800', 'cursor-not-allowed', 'border-blue-300');
+            cell.innerText = slotId; 
+            cell.title = occupiedSlots[slotId]; 
+          } else {
+            cell.classList.add('bg-slate-50', 'text-slate-400', 'hover:bg-slate-200', 'cursor-pointer');
+            cell.innerText = slotId;
+            cell.onclick = () => openModal(letter, num);
+          }
+          
+          gridContainer.appendChild(cell);
+        });
+      }
+    }
+
+    function openModal(letter, num) {
+      document.getElementById('modal-title-coords').innerText = `Box ${BOX_ID}, ${letter}${num}`;
+      document.getElementById('input-col-letter').value = letter;
+      document.getElementById('input-row-number').value = num;
+      document.getElementById('input-date').valueAsDate = new Date(); // Default today
+      
+      setTimeout(() => document.getElementById('input-name').focus(), 10);
+      modal.classList.remove('hidden');
+    }
+
+    document.getElementById('btn-cancel').onclick = () => {
+      modal.classList.add('hidden');
+      form.reset();
+    };
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const submitBtn = document.getElementById('btn-submit');
+      const originalBtnText = submitBtn.innerText;
+      submitBtn.innerText = 'Saving...';
+      submitBtn.disabled = true;
+
+      const payload = {
+        box: document.getElementById('input-box').value,
+        columnLetter: document.getElementById('input-col-letter').value,
+        rowNumber: document.getElementById('input-row-number').value,
+        proteinName: document.getElementById('input-name').value,
+        concentration: document.getElementById('input-conc').value,
+        origin: document.getElementById('input-origin').value,
+        notes: document.getElementById('input-notes').value,
+        date: document.getElementById('input-date').value
+      };
+
+      try {
+        const response = await fetch(GAS_WEB_APP_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify(payload)
+        });
+
+        const result = await response.json();
+        
+        if (result.status === 'success') {
+          const tooltipText = 
+              `Protein: ${payload.proteinName} (${payload.concentration || 'N/A'})\n` +
+              `Origin: ${payload.origin}\n` +
+              `Notes: ${payload.notes}\n` +
+              `Date: ${payload.date}`;
+
+          occupiedSlots[`${payload.columnLetter}${payload.rowNumber}`] = tooltipText;
+          renderGrid();
+          document.getElementById('btn-cancel').click(); 
+        } else {
+          throw new Error(result.message);
+        }
+      } catch (error) {
+        console.error('Save failed:', error);
+        alert('Failed to save data. Check your Web App URL and permissions.');
+      } finally {
+        submitBtn.innerText = originalBtnText;
+        submitBtn.disabled = false;
+      }
+    });
+
+    init();
+  </script>
+</body>
+</html>
