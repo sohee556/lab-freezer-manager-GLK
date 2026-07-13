@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>-80°C Freezer Manager</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-50 min-h-screen text-slate-800 font-sans">
+
+  <nav class="bg-white shadow-sm border-b border-slate-200 sticky top-0 z-40 px-6 py-4 flex justify-between items-center">
+    <div>
+      <h1 class="text-2xl font-bold text-slate-900">Freezer Manager</h1>
+      <div id="breadcrumbs" class="text-sm text-slate-500 mt-1 font-medium">
+        <span class="text-blue-600 hover:underline cursor-pointer" onclick="viewFreezer()">Freezer</span>
+      </div>
+    </div>
+    
+    <div class="relative w-80">
+      <input type="search" id="search-input" placeholder="Search protein name..." class="w-full border border-slate-300 rounded-full py-2 px-4 focus:ring-2 focus:ring-blue-500 focus:outline-none">
+      <div id="search-results" class="hidden absolute top-full left-0 right-0 mt-2 bg-white border border-slate-200 shadow-xl rounded-lg max-h-64 overflow-y-auto z-50">
+        </div>
+    </div>
+  </nav>
+
+  <main class="max-w-5xl mx-auto p-6">
+    <div id="loading" class="text-center text-blue-500 font-semibold my-10">Syncing database...</div>
+    <div id="error-state" class="hidden text-center text-red-600 font-semibold my-10"></div>
+
+    <div id="freezer-view" class="hidden bg-white p-6 rounded-lg shadow-sm border border-slate-200">
+      <h2 class="text-lg font-bold mb-4 text-center text-slate-700">Select a Tray (A1 - F14)</h2>
+      <div id="freezer-grid-container" class="max-w-2xl mx-auto"></div>
+    </div>
+
+    <div id="box-view" class="hidden bg-white p-6 rounded-lg shadow-sm border border-slate-200">
+      <div class="flex justify-between items-center mb-4">
+        <h2 id="box-title" class="text-xl font-bold text-slate-700"></h2>
+        <button onclick="viewFreezer()" class="text-sm bg-slate-100 hover:bg-slate-200 text-slate-700 py-1 px-3 rounded">← Back to Freezer</button>
+      </div>
+      <div id="box-grid-container" class="max-w-2xl mx-auto"></div>
+    </div>
+  </main>
+
+  <div id="rack-modal" class="hidden fixed inset-0 bg-slate-900 bg-opacity-50 flex items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-lg shadow-xl w-full max-w-sm p-6">
+      <div class="flex justify-between items-center mb-4">
+        <h2 class="text-xl font-bold">Tray <span id="rack-modal-title" class="text-blue-600"></span></h2>
+        <button onclick="closeRackModal()" class="text-slate-400 hover:text-slate-700 text-2xl font-bold">&times;</button>
+      </div>
+      <p class="text-sm text-slate-500 mb-4">Select a box to view its contents.</p>
+      <div id="box-buttons-container" class="space-y-3">
+        </div>
+    </div>
+  </div>
+
+  <div id="add-modal" class="hidden fixed inset-0 bg-slate-900 bg-opacity-50 flex items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-lg shadow-xl w-full max-w-md p-6">
+      <h2 class="text-xl font-bold mb-4">Add Protein to <span id="modal-title-coords" class="text-blue-600"></span></h2>
+      
+      <form id="add-sample-form" class="space-y-4">
+        <input type="hidden" id="input-tray">
+        <input type="hidden" id="input-box">
+        <input type="hidden" id="input-slot">
+
+        <div class="flex gap-4">
+          <div class="flex-grow">
+            <label class="block text-sm font-medium mb-1">Protein Name</label>
+            <input type="text" id="input-name" required class="w-full border border-slate-300 rounded p-2 focus:ring-2 focus:ring-blue-500">
+          </div>
+          <div class="w-20">
+            <label class="block text-sm font-medium mb-1">Color</label>
+            <input type="color" id="input-color" value="#3b82f6" class="w-full h-10 border border-slate-300 rounded cursor-pointer">
+          </div>
+        </div>
+        
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium mb-1">Concentration</label>
+            <input type="text" id="input-conc" class="w-full border border-slate-300 rounded p-2 focus:ring-2 focus:ring-blue-500">
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1">Origin / Source</label>
+            <input type="text" id="input-origin" required class="w-full border border-slate-300 rounded p-2 focus:ring-2 focus:ring-blue-500">
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium mb-1">Notes</label>
+          <textarea id="input-notes" rows="2" class="w-full border border-slate-300 rounded p-2 focus:ring-2 focus:ring-blue-500"></textarea>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium mb-1">Date</label>
+          <input type="date" id="input-date" required class="w-full border border-slate-300 rounded p-2 focus:ring-2 focus:ring-blue-500">
+        </div>
+
+        <div class="flex justify-end space-x-3 mt-6">
+          <button type="button" onclick="closeAddModal()" class="px-4 py-2 text-slate-600 bg-slate-100 hover:bg-slate-200 rounded">Cancel</button>
+          <button type="submit" id="btn-submit" class="px-4 py-2 text-white bg-blue-600 hover:bg-blue-700 rounded shadow">Save Entry</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    // --- CONFIGURATION ---
+    // PASTE YOUR GOOGLE APPS SCRIPT WEB APP URL BETWEEN THE SINGLE QUOTES BELOW:
+    const GAS_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbxaLydtVy68ZjSykmAzstp03ijU143eDker01efasPw0OjJvb_3nfqjHSuPsFnFeU0BfQ/exec';
+    
+    // --- STATE ---
+    let inventory = []; 
+    let currentTray = null;
+    let currentBox = null;
+
+    // --- DOM Elements ---
+    const dom = {
+      loading: document.getElementById('loading'),
+      error: document.getElementById('error-state'),
+      freezerView: document.getElementById('freezer-view'),
+      boxView: document.getElementById('box-view'),
+      freezerGrid: document.getElementById('freezer-grid-container'),
+      boxGrid: document.getElementById('box-grid-container'),
+      rackModal: document.getElementById('rack-modal'),
+      addModal: document.getElementById('add-modal'),
+      breadcrumbs: document.getElementById('breadcrumbs'),
+      searchInput: document.getElementById('search-input'),
+      searchResults: document.getElementById('search-results')
+    };
+
+    async function init() {
+      await fetchInventoryData();
+      renderFreezer();
+    }
+
+    async function fetchInventoryData() {
+      try {
+        const response = await fetch(GAS_WEB_APP_URL);
+        const result = await response.json();
+        if (result.status !== 'success') throw new Error(result.message);
+        
+        inventory = result.data.map(cols => {
+          let dateStr = cols[7]; // 8th column is Date
+          if (dateStr && String(dateStr).includes('T')) dateStr = String(dateStr).split('T')[0];
+          
+          return {
+            tray: String(cols[0]).trim(),
+            box: String(cols[1]).trim(),
+            slot: String(cols[2]).trim(), 
+            name: String(cols[3]).trim(),
+            conc: String(cols[4]).trim(),
+            origin: String(cols[5]).trim(),
+            notes: String(cols[6]).trim(),
+            date: dateStr,
+            color: String(cols[8] || '#3b82f6').trim() // 9th column is Color
+          };
+        }).filter(item => item.tray && item.box && item.slot); 
+        
+      } catch (error) {
+        console.error('Data Fetching Error:', error);
+        dom.loading.classList.add('hidden');
+        dom.error.classList.remove('hidden');
+        dom.error.innerText = `Database Sync Error: ${error.message}`;
+      }
+    }
+
+    // --- VIEW 1: RENDER FREEZER (A-F, 1-14) ---
+    function renderFreezer() {
+      dom.loading.classList.add('hidden');
+      dom.boxView.classList.add('hidden');
+      dom.freezerView.classList.remove('hidden');
+      dom.breadcrumbs.innerHTML = `<span class="text-blue-600 font-bold">Freezer View</span>`;
+
+      const columns = ['A', 'B', 'C', 'D', 'E', 'F'];
+      let html = `<div class="grid grid-cols-7 gap-2">`;
+      
+      html += `<div></div>`; 
+      columns.forEach(c => html += `<div class="text-center font-bold text-slate-400 mb-2">${c}</div>`);
+      
+      for(let r = 1; r <= 14; r++) {
+        html += `<div class="flex items-center justify-end pr-2 font-bold text-slate-400">${r}</div>`;
+        columns.forEach(c => {
+          const trayId = `${c}${r}`;
+          const hasItems = inventory.some(item => item.tray === trayId);
+          const bgClass = hasItems ? 'bg-blue-50 border-blue-200' : 'bg-slate-50 border-slate-200';
+          
+          html += `
+            <div onclick="openRackModal('${trayId}')" 
+                 class="${bgClass} border rounded h-12 flex items-center justify-center cursor-pointer hover:bg-blue-100 hover:border-blue-400 shadow-sm transition-all text-sm font-bold text-slate-600">
+              ${trayId}
+            </div>`;
+        });
+      }
+      html += `</div>`;
+      dom.freezerGrid.innerHTML = html;
+    }
+
+    // --- MODAL: SELECT BOX 1-4 ---
+    function openRackModal(trayId) {
+      document.getElementById('rack-modal-title').innerText = trayId;
+      const btnContainer = document.getElementById('box-buttons-container');
+      btnContainer.innerHTML = '';
+
+      for(let b = 1; b <= 4; b++) {
+        const boxNum = String(b);
+        const boxItems = inventory.filter(i => i.tray === trayId && i.box === boxNum);
+        
+        const uniqueColors = [...new Set(boxItems.map(i => i.color))];
+        let colorDotsHtml = uniqueColors.map(color => `<div class="w-3 h-3 rounded-full shadow-sm" style="background-color: ${color}"></div>`).join('');
+        
+        btnContainer.innerHTML += `
+          <button onclick="viewBox('${trayId}', '${boxNum}')" class="w-full flex items-center justify-between p-4 bg-slate-50 hover:bg-blue-50 border border-slate-200 rounded-lg transition-colors">
+            <span class="font-bold text-slate-700">Box ${boxNum}</span>
+            <div class="flex items-center space-x-2">
+              <div class="flex space-x-1 mr-3">${colorDotsHtml}</div>
+              <span class="text-xs text-slate-500 font-medium bg-white px-2 py-1 rounded shadow-sm border border-slate-200">${boxItems.length}/81 Slots</span>
+            </div>
+          </button>
+        `;
+      }
+      dom.rackModal.classList.remove('hidden');
+    }
+
+    function closeRackModal() {
+      dom.rackModal.classList.add('hidden');
+    }
+
+    // --- VIEW 2: RENDER BOX (9x9) ---
+    function viewBox(trayId, boxNum) {
+      closeRackModal();
+      currentTray = trayId;
+      currentBox = boxNum;
+      
+      dom.freezerView.classList.add('hidden');
+      dom.boxView.classList.remove('hidden');
+      
+      document.getElementById('box-title').innerText = `Tray ${trayId} — Box ${boxNum}`;
+      dom.breadcrumbs.innerHTML = `
+        <span class="text-slate-500 hover:text-blue-600 hover:underline cursor-pointer" onclick="viewFreezer()">Freezer</span> 
+        <span class="mx-1">/</span> 
+        <span class="text-slate-500 hover:text-blue-600 hover:underline cursor-pointer" onclick="openRackModal('${trayId}')">Tray ${trayId}</span>
+        <span class="mx-1">/</span> 
+        <span class="text-blue-600 font-bold">Box ${boxNum}</span>
+      `;
+
+      const columns = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I'];
+      let html = `<div class="grid grid-cols-10 gap-1">`;
+      
+      html += `<div></div>`;
+      columns.forEach(c => html += `<div class="text-center font-bold text-slate-400 text-sm mb-1">${c}</div>`);
+      
+      for(let r = 1; r <= 9; r++) {
+        html += `<div class="flex items-center justify-end pr-2 font-bold text-slate-400 text-sm">${r}</div>`;
+        
+        columns.forEach(c => {
+          const slotId = `${c}${r}`;
+          const item = inventory.find(i => i.tray === currentTray && i.box === currentBox && i.slot === slotId);
+          
+          if (item) {
+            const tooltip = `${item.name} (${item.conc || 'N/A'})\nOrigin: ${item.origin}\nDate: ${item.date}`;
+            html += `
+              <div id="slot-${currentTray}-${currentBox}-${slotId}" title="${tooltip}" class="aspect-square flex items-center justify-center rounded text-xs font-bold text-white shadow-sm cursor-not-allowed transition-transform" style="background-color: ${item.color}; border: 1px solid rgba(0,0,0,0.1);">
+                ${slotId}
+              </div>`;
+          } else {
+            html += `
+              <div onclick="openAddModal('${slotId}')" class="aspect-square flex items-center justify-center rounded text-xs font-medium bg-slate-50 text-slate-400 border border-slate-200 hover:bg-blue-100 hover:text-blue-600 hover:border-blue-300 cursor-pointer transition-colors">
+                ${slotId}
+              </div>`;
+          }
+        });
+      }
+      html += `</div>`;
+      dom.boxGrid.innerHTML = html;
+    }
+
+    function viewFreezer() {
+      currentTray = null;
+      currentBox = null;
+      renderFreezer();
+    }
+
+    // --- SEARCH ENGINE ---
+    dom.searchInput.addEventListener('input', (e) => {
+      const q = e.target.value.toLowerCase().trim();
+      dom.searchResults.innerHTML = '';
+      
+      if (!q) {
+        dom.searchResults.classList.add('hidden');
+        return;
+      }
+
+      const results = inventory.filter(i => 
+        i.name.toLowerCase().includes(q) || i.notes.toLowerCase().includes(q)
+      ).slice(0, 10); 
+
+      if (results.length === 0) {
+        dom.searchResults.innerHTML = `<div class="p-4 text-sm text-slate-500">No proteins found.</div>`;
+      } else {
+        results.forEach(res => {
+          dom.searchResults.innerHTML += `
+            <div onclick="goToSearchItem('${res.tray}', '${res.box}', '${res.slot}')" class="p-3 hover:bg-blue-50 border-b border-slate-100 cursor-pointer transition-colors flex items-center justify-between">
+              <div>
+                <div class="font-bold text-slate-800">${res.name}</div>
+                <div class="text-xs text-slate-500 mt-1">Tray ${res.tray} &rarr; Box ${res.box} &rarr; Slot ${res.slot}</div>
+              </div>
+              <div class="w-4 h-4 rounded-full shadow-sm" style="background-color: ${res.color}"></div>
+            </div>
+          `;
+        });
+      }
+      dom.searchResults.classList.remove('hidden');
+    });
+
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('.relative.w-80')) dom.searchResults.classList.add('hidden');
+    });
+
+    function goToSearchItem(tray, box, slot) {
+      dom.searchResults.classList.add('hidden');
+      dom.searchInput.value = '';
+      viewBox(tray, box);
+      
+      setTimeout(() => {
+        const slotEl = document.getElementById(`slot-${tray}-${box}-${slot}`);
+        if (slotEl) {
+          slotEl.classList.add('ring-4', 'ring-yellow-400', 'scale-110', 'z-10');
+          setTimeout(() => slotEl.classList.remove('ring-4', 'ring-yellow-400', 'scale-110', 'z-10'), 2500);
+        }
+      }, 100);
+    }
+
+    // --- ADD DATA MODAL ---
+    function openAddModal(slotId) {
+      document.getElementById('modal-title-coords').innerText = `Tray ${currentTray}, Box ${currentBox}, Slot ${slotId}`;
+      
+      document.getElementById('input-tray').value = currentTray;
+      document.getElementById('input-box').value = currentBox;
+      document.getElementById('input-slot').value = slotId;
+      document.getElementById('input-date').valueAsDate = new Date();
+      
+      const savedColor = localStorage.getItem('labBoxColor');
+      if (savedColor) document.getElementById('input-color').value = savedColor;
+      
+      dom.addModal.classList.remove('hidden');
+      setTimeout(() => document.getElementById('input-name').focus(), 10);
+    }
+
+    function closeAddModal() {
+      dom.addModal.classList.add('hidden');
+      document.getElementById('add-sample-form').reset();
+    }
+
+    document.getElementById('add-sample-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const submitBtn = document.getElementById('btn-submit');
+      const originalText = submitBtn.innerText;
+      submitBtn.innerText = 'Saving...';
+      submitBtn.disabled = true;
+
+      const payload = {
+        tray: document.getElementById('input-tray').value,
+        box: document.getElementById('input-box').value,
+        slot: document.getElementById('input-slot').value, 
+        proteinName: document.getElementById('input-name').value,
+        concentration: document.getElementById('input-conc').value,
+        origin: document.getElementById('input-origin').value,
+        notes: document.getElementById('input-notes').value,
+        date: document.getElementById('input-date').value,
+        color: document.getElementById('input-color').value
+      };
+
+      localStorage.setItem('labBoxColor', payload.color);
+
+      try {
+        const response = await fetch(GAS_WEB_APP_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify(payload)
+        });
+
+        const result = await response.json();
+        
+        if (result.status === 'success') {
+          inventory.push(payload);
+          viewBox(currentTray, currentBox); 
+          closeAddModal();
+        } else {
+          throw new Error(result.message);
+        }
+      } catch (error) {
+        console.error('Save failed:', error);
+        alert('Failed to save. Check your connection or Apps Script permissions.');
+      } finally {
+        submitBtn.innerText = originalText;
+        submitBtn.disabled = false;
+      }
+    });
+
+    init();
+  </script>
+</body>
+</html>
