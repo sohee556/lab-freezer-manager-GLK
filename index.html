@@ -3,399 +3,463 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>-80°C Freezer Manager</title>
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <title>Kleiger Lab LIMS</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .table-scroll::-webkit-scrollbar { width: 8px; height: 8px; }
+    .table-scroll::-webkit-scrollbar-track { background: #f1f5f9; }
+    .table-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+    .drag-over { background-color: #fef08a !important; border: 2px dashed #eab308 !important; transform: scale(1.05); }
+    .calendar-col { min-width: 140px; }
+  </style>
 </head>
 <body class="bg-slate-50 min-h-screen text-slate-800 font-sans">
 
-  <nav class="bg-white shadow-sm border-b border-slate-200 sticky top-0 z-40 px-6 py-4 flex justify-between items-center">
+  <nav class="bg-cyan-950 shadow-lg border-b border-cyan-900 sticky top-0 z-30 px-6 py-3 flex flex-col md:flex-row justify-between items-center text-white gap-4">
     <div>
-      <h1 class="text-2xl font-bold text-slate-900">Freezer Manager</h1>
-      <div id="breadcrumbs" class="text-sm text-slate-500 mt-1 font-medium">
-        <span class="text-blue-600 hover:underline cursor-pointer" onclick="viewFreezer()">Freezer</span>
-      </div>
+      <h1 class="text-2xl font-bold tracking-wide">Kleiger Lab LIMS</h1>
     </div>
-    
-    <div class="relative w-80">
-      <input type="search" id="search-input" placeholder="Search protein name..." class="w-full border border-slate-300 rounded-full py-2 px-4 focus:ring-2 focus:ring-blue-500 focus:outline-none">
-      <div id="search-results" class="hidden absolute top-full left-0 right-0 mt-2 bg-white border border-slate-200 shadow-xl rounded-lg max-h-64 overflow-y-auto z-50">
-        </div>
+    <div class="flex space-x-2 bg-cyan-900 p-1 rounded-lg">
+      <button onclick="switchTab('freezer')" id="tab-freezer" class="px-4 py-2 rounded font-bold text-sm bg-cyan-700 text-white transition-colors">❄️ Freezer Grid</button>
+      <button onclick="switchTab('global')" id="tab-global" class="px-4 py-2 rounded font-bold text-sm text-cyan-200 hover:bg-cyan-800 transition-colors">📋 Global Inventory</button>
+      <button onclick="switchTab('bio')" id="tab-bio" class="px-4 py-2 rounded font-bold text-sm text-cyan-200 hover:bg-cyan-800 transition-colors">🦠 Cell & Virus Tracker</button>
+    </div>
+    <div class="flex items-center space-x-4">
+      <div class="relative w-64">
+        <input type="search" id="search-input" placeholder="Search Proteins or GKDs..." class="w-full bg-cyan-900 border border-cyan-800 rounded-full py-2 px-4 text-white placeholder-cyan-500 focus:ring-2 focus:ring-cyan-400 focus:outline-none">
+        <div id="search-results" class="hidden absolute top-full right-0 mt-2 w-96 bg-white border border-slate-200 shadow-xl rounded-lg max-h-80 overflow-y-auto z-50 text-slate-800"></div>
+      </div>
+      <button onclick="openSettingsModal()" class="flex items-center space-x-2 bg-cyan-800 hover:bg-cyan-700 px-3 py-2 rounded-lg font-medium transition-colors border border-cyan-700">
+        <span>⚙️ Team</span>
+      </button>
     </div>
   </nav>
 
-  <main class="max-w-5xl mx-auto p-6">
-    <div id="loading" class="text-center text-blue-500 font-semibold my-10">Syncing database...</div>
-    <div id="error-state" class="hidden text-center text-red-600 font-semibold my-10"></div>
+  <main class="max-w-7xl mx-auto p-6 pb-20">
+    <div id="loading" class="text-center text-cyan-700 font-bold text-lg my-10 animate-pulse">Syncing Kleiger Database...</div>
+    <div id="error-state" class="hidden text-center text-red-600 font-semibold my-10 bg-red-50 p-4 rounded-lg"></div>
 
-    <div id="freezer-view" class="hidden bg-white p-6 rounded-lg shadow-sm border border-slate-200">
-      <h2 class="text-lg font-bold mb-4 text-center text-slate-700">Select a Tray (A1 - F14)</h2>
-      <div id="freezer-grid-container" class="max-w-2xl mx-auto"></div>
+    <div id="view-freezer" class="hidden space-y-8">
+      <div id="screen-master-grid">
+        <div class="bg-white p-8 rounded-xl shadow-sm border border-slate-200 mb-8">
+          <div class="flex justify-between items-center mb-6">
+            <h2 class="text-lg font-bold text-slate-700 uppercase tracking-widest">Master Grid (A-F)</h2>
+            <span class="text-xs font-bold text-amber-600 bg-amber-50 px-3 py-1 rounded border border-amber-200">💡 Drag a filled tray to an empty space to move it</span>
+          </div>
+          <div id="freezer-grid-container" class="max-w-3xl mx-auto"></div>
+        </div>
+        <div class="bg-slate-100 p-8 rounded-xl shadow-inner border border-slate-300">
+          <h2 class="text-lg font-bold mb-6 text-center text-slate-700 uppercase tracking-widest flex items-center justify-center gap-2">
+            <span>❄️</span> Bottom Storage: Glycerol Stocks
+          </h2>
+          <div id="glycerol-overview-container" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4"></div>
+        </div>
+      </div>
+
+      <div id="screen-box-detail" class="hidden bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+        <div class="flex justify-between items-center mb-6 border-b border-slate-100 pb-4">
+          <h2 id="box-title" class="text-2xl font-bold text-slate-800"></h2>
+          <button onclick="showScreen('screen-master-grid')" class="text-sm bg-slate-100 hover:bg-slate-200 text-slate-700 py-2 px-4 rounded-lg font-bold transition-colors">← Back to Grid</button>
+        </div>
+        <div id="box-grid-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"></div>
+      </div>
+
+      <div id="screen-glyc-detail" class="hidden bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+        <div class="flex justify-between items-center mb-6 border-b border-slate-100 pb-4">
+          <div><h2 id="glyc-box-title" class="text-2xl font-bold text-blue-900"></h2></div>
+          <button onclick="showScreen('screen-master-grid')" class="text-sm bg-slate-100 hover:bg-slate-200 text-slate-700 py-2 px-4 rounded-lg font-bold transition-colors">← Back to Grid</button>
+        </div>
+        <div id="glyc-list-container" class="max-w-5xl mx-auto bg-white shadow-sm border border-slate-200 rounded-xl overflow-hidden"></div>
+      </div>
     </div>
 
-    <div id="box-view" class="hidden bg-white p-6 rounded-lg shadow-sm border border-slate-200">
-      <div class="flex justify-between items-center mb-4">
-        <h2 id="box-title" class="text-xl font-bold text-slate-700"></h2>
-        <button onclick="viewFreezer()" class="text-sm bg-slate-100 hover:bg-slate-200 text-slate-700 py-1 px-3 rounded">← Back to Freezer</button>
+    <div id="view-global" class="hidden bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+      <div class="flex justify-between items-end mb-4 border-b border-slate-100 pb-4">
+        <div>
+          <h2 class="text-2xl font-bold text-slate-800">Global Inventory Directory</h2>
+          <p class="text-sm text-slate-500">All Proteins and GKDs across all freezers.</p>
+        </div>
+        <input type="search" id="global-search" placeholder="Filter table..." class="w-64 border border-slate-300 rounded p-2 focus:ring-2 focus:ring-cyan-500">
       </div>
-      <div id="box-grid-container" class="max-w-2xl mx-auto"></div>
+      <div class="table-scroll overflow-y-auto max-h-[600px]">
+        <table class="w-full text-left text-sm whitespace-nowrap">
+          <thead class="bg-slate-50 sticky top-0 z-10 border-b border-slate-200 text-slate-500"><tr><th class="p-3">Type</th><th class="p-3">Location</th><th class="p-3">Name / ID</th><th class="p-3">Details</th><th class="p-3">Notes</th></tr></thead>
+          <tbody id="global-table-body" class="divide-y divide-slate-100"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div id="view-bio" class="hidden space-y-6">
+      <div class="bg-slate-800 p-6 rounded-xl shadow-sm text-white">
+        <h2 class="text-xl font-bold mb-4 flex items-center gap-2"><span>📅</span> 7-Day Forecast Calendar</h2>
+        <div class="flex overflow-x-auto gap-4 table-scroll pb-2" id="calendar-container"></div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+          <div class="flex justify-between items-center mb-6 border-b border-slate-100 pb-4">
+            <h2 class="text-xl font-bold text-slate-800">Cell Cultures</h2>
+            <button onclick="openCellModal()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-1 px-3 text-sm rounded shadow-sm">+ New Culture</button>
+          </div>
+          <div id="cells-grid-container" class="space-y-4 max-h-[500px] overflow-y-auto pr-2 table-scroll"></div>
+        </div>
+
+        <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+          <div class="flex justify-between items-center mb-6 border-b border-slate-100 pb-4">
+            <h2 class="text-xl font-bold text-slate-800">Baculovirus Production</h2>
+            <button onclick="openVirusModal()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-1 px-3 text-sm rounded shadow-sm">+ New Infection</button>
+          </div>
+          <div id="virus-grid-container" class="space-y-4 max-h-[500px] overflow-y-auto pr-2 table-scroll"></div>
+        </div>
+      </div>
     </div>
   </main>
 
-  <div id="rack-modal" class="hidden fixed inset-0 bg-slate-900 bg-opacity-50 flex items-center justify-center p-4 z-50">
-    <div class="bg-white rounded-lg shadow-xl w-full max-w-sm p-6">
-      <div class="flex justify-between items-center mb-4">
-        <h2 class="text-xl font-bold">Tray <span id="rack-modal-title" class="text-blue-600"></span></h2>
-        <button onclick="closeRackModal()" class="text-slate-400 hover:text-slate-700 text-2xl font-bold">&times;</button>
-      </div>
-      <p class="text-sm text-slate-500 mb-4">Select a box to view its contents.</p>
-      <div id="box-buttons-container" class="space-y-3">
-        </div>
-    </div>
-  </div>
+  <div id="settings-modal" class="hidden fixed inset-0 bg-slate-900 bg-opacity-60 flex items-center justify-center p-4 z-50"><div class="bg-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden"><div class="bg-cyan-950 p-4 text-white flex justify-between items-center"><h2 class="text-lg font-bold">Team Members & Colors</h2><button onclick="closeModal('settings-modal')" class="text-cyan-200 hover:text-white text-2xl font-bold">&times;</button></div><div class="p-6"><form id="form-add-user" class="flex gap-3 mb-6"><input type="text" id="input-new-user" placeholder="Name" required class="flex-grow border border-slate-300 rounded p-2 focus:ring-2 focus:ring-cyan-500"><input type="color" id="input-new-color" value="#06b6d4" class="w-12 h-10 border border-slate-300 rounded cursor-pointer"><button type="submit" id="btn-add-user" class="bg-cyan-700 hover:bg-cyan-800 text-white px-4 rounded">Add</button></form><div id="team-list" class="space-y-2 max-h-48 overflow-y-auto"></div></div></div></div>
 
-  <div id="add-modal" class="hidden fixed inset-0 bg-slate-900 bg-opacity-50 flex items-center justify-center p-4 z-50">
-    <div class="bg-white rounded-lg shadow-xl w-full max-w-md p-6">
-      <h2 class="text-xl font-bold mb-4">Add Protein to <span id="modal-title-coords" class="text-blue-600"></span></h2>
-      
-      <form id="add-sample-form" class="space-y-4">
-        <input type="hidden" id="input-tray">
-        <input type="hidden" id="input-box">
-        <input type="hidden" id="input-slot">
+  <div id="rack-modal" class="hidden fixed inset-0 bg-slate-900 bg-opacity-60 flex items-center justify-center p-4 z-40"><div class="bg-white rounded-xl shadow-2xl w-full max-w-sm overflow-hidden"><div class="bg-cyan-950 p-4 text-white flex justify-between items-center"><h2 class="text-lg font-bold">Tray <span id="rack-modal-title" class="text-cyan-300"></span></h2><button onclick="closeModal('rack-modal')" class="text-cyan-200 hover:text-white text-2xl font-bold">&times;</button></div><div class="p-6"><div class="mb-6 bg-slate-50 p-3 rounded-lg border border-slate-200"><label class="text-xs font-bold text-slate-500 uppercase">Tray Owner</label><select id="select-tray-owner" onchange="assignTrayOwner(this.value)" class="w-full mt-1 p-2 rounded border border-slate-300"></select></div><div id="box-buttons-container" class="space-y-3"></div></div></div></div>
+  
+  <div id="rename-box-modal" class="hidden fixed inset-0 bg-slate-900 bg-opacity-60 flex items-center justify-center p-4 z-50"><div class="bg-white rounded-xl shadow-2xl w-full max-w-sm p-6 border-t-4 border-cyan-600"><h2 class="text-lg font-bold mb-4">Rename <span id="rename-box-title" class="text-cyan-700"></span></h2><input type="text" id="input-new-box-name" placeholder="Name" class="w-full border border-slate-300 rounded p-2 mb-4"><div class="flex justify-end space-x-3"><button onclick="closeModal('rename-box-modal')" class="px-4 py-2 bg-slate-100 rounded">Cancel</button><button onclick="submitRenameBox()" id="btn-rename-box" class="px-4 py-2 bg-cyan-700 text-white rounded shadow">Save</button></div></div></div>
 
-        <div class="flex gap-4">
-          <div class="flex-grow">
-            <label class="block text-sm font-medium mb-1">Protein Name</label>
-            <input type="text" id="input-name" required class="w-full border border-slate-300 rounded p-2 focus:ring-2 focus:ring-blue-500">
-          </div>
-          <div class="w-20">
-            <label class="block text-sm font-medium mb-1">Color</label>
-            <input type="color" id="input-color" value="#3b82f6" class="w-full h-10 border border-slate-300 rounded cursor-pointer">
-          </div>
-        </div>
-        
-        <div class="grid grid-cols-2 gap-4">
-          <div>
-            <label class="block text-sm font-medium mb-1">Concentration</label>
-            <input type="text" id="input-conc" class="w-full border border-slate-300 rounded p-2 focus:ring-2 focus:ring-blue-500">
-          </div>
-          <div>
-            <label class="block text-sm font-medium mb-1">Origin / Source</label>
-            <input type="text" id="input-origin" required class="w-full border border-slate-300 rounded p-2 focus:ring-2 focus:ring-blue-500">
-          </div>
-        </div>
+  <div id="cell-modal" class="hidden fixed inset-0 bg-slate-900 bg-opacity-60 flex items-center justify-center p-4 z-50"><div class="bg-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden"><div class="bg-indigo-700 p-4 text-white"><h2 class="text-lg font-bold" id="cell-modal-title">New Cell Culture</h2></div><form id="form-cell" class="p-6 space-y-4"><input type="hidden" id="input-cell-id"><div class="grid grid-cols-2 gap-4"><div><label class="block text-sm font-bold text-slate-700 mb-1">Cell Type</label><select id="input-cell-type" onchange="autoFillDoubling()" required class="w-full border border-slate-300 rounded p-2 bg-white"><option value="">-- Select --</option><option value="Sf9">Sf9 (Insect)</option><option value="High Five">High Five (Insect)</option><option value="Custom">Custom...</option></select></div><div><label class="block text-sm font-bold text-slate-700 mb-1">Doubling (hrs)</label><input type="text" id="input-cell-doubling" placeholder="24 or 24-30" required class="w-full border border-slate-300 rounded p-2"></div></div><div class="grid grid-cols-2 gap-4"><div><label class="block text-sm font-bold text-slate-700 mb-1">Owner</label><select id="input-cell-owner" required class="w-full border border-slate-300 rounded p-2 bg-white"></select></div><div><label class="block text-sm font-bold text-slate-700 mb-1">Passage #</label><input type="number" id="input-cell-passage" value="0" required class="w-full border border-slate-300 rounded p-2"></div></div><div class="grid grid-cols-3 gap-4"><div><label class="block text-sm font-bold text-slate-700 mb-1">Density (e6)</label><input type="number" step="0.01" id="input-cell-density" required class="w-full border border-slate-300 rounded p-2"></div><div><label class="block text-sm font-bold text-slate-700 mb-1">Vol (mL)</label><input type="number" step="0.1" id="input-cell-vol" required class="w-full border border-slate-300 rounded p-2"></div><div><label class="block text-sm font-bold text-slate-700 mb-1">Flasks</label><input type="number" id="input-cell-flasks" value="1" required class="w-full border border-slate-300 rounded p-2"></div></div><div class="flex justify-end space-x-3 mt-6"><button type="button" onclick="closeModal('cell-modal')" class="px-4 py-2 bg-slate-100 rounded">Cancel</button><button type="submit" id="btn-save-cell" class="px-4 py-2 bg-indigo-700 text-white rounded">Save Culture</button></div></form></div></div>
 
-        <div>
-          <label class="block text-sm font-medium mb-1">Notes</label>
-          <textarea id="input-notes" rows="2" class="w-full border border-slate-300 rounded p-2 focus:ring-2 focus:ring-blue-500"></textarea>
-        </div>
+  <div id="virus-modal" class="hidden fixed inset-0 bg-slate-900 bg-opacity-60 flex items-center justify-center p-4 z-50"><div class="bg-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden"><div class="bg-emerald-700 p-4 text-white"><h2 class="text-lg font-bold">New Baculovirus Infection</h2></div><form id="form-virus" class="p-6 space-y-4"><div class="grid grid-cols-2 gap-4"><div><label class="block text-sm font-bold mb-1">Passage</label><select id="input-virus-passage" required class="w-full border border-slate-300 rounded p-2 bg-white"><option value="P1">P1 (7 Days)</option><option value="P2">P2 (4-5 Days)</option><option value="P3">P3 (4-5 Days)</option></select></div><div><label class="block text-sm font-bold mb-1">Owner</label><select id="input-virus-owner" required class="w-full border border-slate-300 rounded p-2 bg-white"></select></div></div><div><label class="block text-sm font-bold mb-1">Virus Name / Construct</label><input type="text" id="input-virus-name" required class="w-full border border-slate-300 rounded p-2"></div><div><label class="block text-sm font-bold mb-1">Infection Time</label><input type="datetime-local" id="input-virus-time" required class="w-full border border-slate-300 rounded p-2"></div><div><label class="block text-sm font-bold mb-1">Agarose Gel Image (Optional)</label><input type="file" id="input-virus-file" accept="image/*" class="w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100"><p class="text-[10px] text-slate-400 mt-1">Image will be automatically compressed to fit database.</p></div><div class="flex justify-end space-x-3 mt-6"><button type="button" onclick="closeModal('virus-modal')" class="px-4 py-2 bg-slate-100 rounded">Cancel</button><button type="submit" id="btn-save-virus" class="px-4 py-2 bg-emerald-700 text-white rounded">Save Virus</button></div></form></div></div>
+  <div id="image-viewer-modal" class="hidden fixed inset-0 bg-slate-900 bg-opacity-90 flex items-center justify-center p-4 z-50"><div class="relative"><button onclick="closeModal('image-viewer-modal')" class="absolute -top-10 right-0 text-white text-3xl font-bold">&times;</button><img id="viewer-img" src="" class="max-w-full max-h-[80vh] rounded shadow-2xl border-4 border-white"></div></div>
 
-        <div>
-          <label class="block text-sm font-medium mb-1">Date</label>
-          <input type="date" id="input-date" required class="w-full border border-slate-300 rounded p-2 focus:ring-2 focus:ring-blue-500">
-        </div>
-
-        <div class="flex justify-end space-x-3 mt-6">
-          <button type="button" onclick="closeAddModal()" class="px-4 py-2 text-slate-600 bg-slate-100 hover:bg-slate-200 rounded">Cancel</button>
-          <button type="submit" id="btn-submit" class="px-4 py-2 text-white bg-blue-600 hover:bg-blue-700 rounded shadow">Save Entry</button>
-        </div>
-      </form>
-    </div>
-  </div>
+  <div id="create-pillbox-modal" class="hidden fixed inset-0 bg-slate-900 bg-opacity-60 flex items-center justify-center p-4 z-50"><div class="bg-white rounded-xl shadow-2xl w-full max-w-sm overflow-hidden"><div class="bg-indigo-600 p-4 text-white"><h2 class="text-lg font-bold">Create Pillbox <span id="create-pillbox-title" class="text-indigo-200"></span></h2></div><form id="form-create-pillbox" class="p-6 space-y-4"><div><label class="block text-sm font-bold text-slate-700 mb-1">Pillbox Name</label><input type="text" id="input-pillbox-name" required class="w-full border border-slate-300 rounded p-2"></div><div><label class="block text-sm font-bold text-slate-700 mb-1">Date</label><input type="date" id="input-pillbox-date" required class="w-full border border-slate-300 rounded p-2"></div><div class="flex justify-end space-x-3"><button type="button" onclick="closeModal('create-pillbox-modal')" class="px-4 py-2 bg-slate-100 rounded">Cancel</button><button type="submit" id="btn-create-pillbox" class="px-4 py-2 bg-indigo-600 text-white rounded">Create</button></div></form></div></div>
+  <div id="add-protein-modal" class="hidden fixed inset-0 bg-slate-900 bg-opacity-60 flex items-center justify-center p-4 z-50"><div class="bg-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden"><div class="bg-emerald-700 p-4 text-white"><h2 class="text-lg font-bold">Add Protein to <span id="add-protein-title" class="text-emerald-200"></span></h2></div><form id="form-add-protein" class="p-6 space-y-4"><div class="flex gap-4"><div class="flex-grow"><label class="block text-sm font-bold mb-1">Name</label><input type="text" id="input-prot-name" required class="w-full border border-slate-300 rounded p-2"></div><div class="w-32"><label class="block text-sm font-bold mb-1">Owner</label><select id="input-prot-owner" class="w-full border border-slate-300 rounded p-2 bg-white"></select></div></div><div class="grid grid-cols-2 gap-4"><div><label class="block text-sm font-bold mb-1">Conc.</label><input type="text" id="input-prot-conc" class="w-full border border-slate-300 rounded p-2"></div><div><label class="block text-sm font-bold mb-1">Origin</label><input type="text" id="input-prot-origin" required class="w-full border border-slate-300 rounded p-2"></div></div><div><label class="block text-sm font-bold mb-1">Notes</label><textarea id="input-prot-notes" rows="2" class="w-full border border-slate-300 rounded p-2"></textarea></div><div><label class="block text-sm font-bold mb-1">Date</label><input type="date" id="input-prot-date" required class="w-full border border-slate-300 rounded p-2"></div><div class="flex justify-end space-x-3"><button type="button" onclick="closeModal('add-protein-modal')" class="px-4 py-2 bg-slate-100 rounded">Cancel</button><button type="submit" id="btn-add-protein" class="px-4 py-2 bg-emerald-700 text-white rounded">Save</button></div></form></div></div>
+  
+  <div id="add-glycerol-modal" class="hidden fixed inset-0 bg-slate-900 bg-opacity-60 flex items-center justify-center p-4 z-50"><div class="bg-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden"><div class="bg-blue-800 p-4 text-white"><h2 class="text-lg font-bold" id="add-glyc-header">Add Glycerol Stock</h2></div><form id="form-add-glycerol" class="p-6 space-y-4"><div class="grid grid-cols-2 gap-4"><div><label class="block text-sm font-bold mb-1">GKD ID</label><input type="text" id="input-glyc-gkd" required class="w-full border border-slate-300 rounded p-2"></div><div><label class="block text-sm font-bold mb-1">Owner</label><select id="input-glyc-owner" required class="w-full border border-slate-300 rounded p-2 bg-white"></select></div></div><div class="grid grid-cols-2 gap-4"><div><label class="block text-sm font-bold mb-1">Construct</label><input type="text" id="input-glyc-construct" required class="w-full border border-slate-300 rounded p-2"></div><div><label class="block text-sm font-bold mb-1">Cell Strain</label><input type="text" id="input-glyc-strain" required class="w-full border border-slate-300 rounded p-2"></div></div><div class="grid grid-cols-2 gap-4"><div><label class="block text-sm font-bold mb-1">Origin</label><input type="text" id="input-glyc-origin" class="w-full border border-slate-300 rounded p-2"></div><div><label class="block text-sm font-bold mb-1">Date</label><input type="date" id="input-glyc-date" required class="w-full border border-slate-300 rounded p-2"></div></div><div><label class="block text-sm font-bold mb-1">Notes / Res.</label><textarea id="input-glyc-notes" rows="2" class="w-full border border-slate-300 rounded p-2"></textarea></div><div class="flex justify-end space-x-3 mt-6"><button type="button" onclick="closeModal('add-glycerol-modal')" class="px-4 py-2 bg-slate-100 rounded">Cancel</button><button type="submit" id="btn-add-glycerol" class="px-4 py-2 bg-blue-800 text-white rounded">Save</button></div></form></div></div>
 
   <script>
-    // --- CONFIGURATION ---
-    // PASTE YOUR GOOGLE APPS SCRIPT WEB APP URL BETWEEN THE SINGLE QUOTES BELOW:
     const GAS_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbxaLydtVy68ZjSykmAzstp03ijU143eDker01efasPw0OjJvb_3nfqjHSuPsFnFeU0BfQ/exec';
-    
-    // --- STATE ---
-    let inventory = []; 
-    let currentTray = null;
-    let currentBox = null;
 
-    // --- DOM Elements ---
-    const dom = {
-      loading: document.getElementById('loading'),
-      error: document.getElementById('error-state'),
-      freezerView: document.getElementById('freezer-view'),
-      boxView: document.getElementById('box-view'),
-      freezerGrid: document.getElementById('freezer-grid-container'),
-      boxGrid: document.getElementById('box-grid-container'),
-      rackModal: document.getElementById('rack-modal'),
-      addModal: document.getElementById('add-modal'),
-      breadcrumbs: document.getElementById('breadcrumbs'),
-      searchInput: document.getElementById('search-input'),
-      searchResults: document.getElementById('search-results')
-    };
+    let inventory = []; let glycerolInventory = []; let team = []; let trayOwners = {}; let cellCultures = []; let viruses = [];
+    let glycMap = { 'B13-1': '1', 'B13-2': '2', 'B13-3': '3', 'B13-4': '4', 'C13-1': '5', 'C13-2': '6', 'C13-3': '7', 'C13-4': '8', 'C14-1': '9', 'C14-2': '10', 'C14-3': '11', 'C14-4': '12' };
+    let current = { tray: null, boxNum: null, boxName: null, pillboxNum: null, pillboxName: null, pillboxDate: null, entryNum: null, glycSlotNum: null, glycBoxId: null };
 
-    async function init() {
-      await fetchInventoryData();
-      renderFreezer();
+    async function init() { 
+      await fetchInventoryData(); 
+      switchTab('freezer'); 
+      setInterval(renderBio, 60000); 
     }
 
     async function fetchInventoryData() {
       try {
-        const response = await fetch(GAS_WEB_APP_URL);
+        const response = await fetch(GAS_WEB_APP_URL); 
         const result = await response.json();
+        
         if (result.status !== 'success') throw new Error(result.message);
+
+        team = []; trayOwners = {};
+        if (result.settings) {
+          result.settings.forEach(row => {
+            if (row[0] === 'User') team.push({ name: String(row[1]).trim(), color: String(row[2]).trim() });
+            if (row[0] === 'Tray') trayOwners[String(row[1]).trim()] = String(row[2]).trim();
+            if (row[0] === 'GlycMap') { if (row[2] === "") delete glycMap[row[1]]; else glycMap[row[1]] = String(row[2]).trim(); }
+          });
+        }
         
-        inventory = result.data.map(cols => {
-          let dateStr = cols[7]; // 8th column is Date
-          if (dateStr && String(dateStr).includes('T')) dateStr = String(dateStr).split('T')[0];
-          
-          return {
-            tray: String(cols[0]).trim(),
-            box: String(cols[1]).trim(),
-            slot: String(cols[2]).trim(), 
-            name: String(cols[3]).trim(),
-            conc: String(cols[4]).trim(),
-            origin: String(cols[5]).trim(),
-            notes: String(cols[6]).trim(),
-            date: dateStr,
-            color: String(cols[8] || '#3b82f6').trim() // 9th column is Color
-          };
-        }).filter(item => item.tray && item.box && item.slot); 
+        inventory = (result.data || []).map(cols => {
+          let pillDate = cols[5]; if (pillDate && String(pillDate).includes('T')) pillDate = String(pillDate).split('T')[0];
+          let protDate = cols[12]; if (protDate && String(protDate).includes('T')) protDate = String(protDate).split('T')[0];
+          return { tray: String(cols[0]).trim(), boxNum: String(cols[1]).trim(), boxName: String(cols[2]).trim(), pillboxNum: String(cols[3]).trim(), pillboxName: String(cols[4]).trim(), pillboxDate: pillDate, entryNum: String(cols[6]).trim(), proteinName: String(cols[7]).trim(), color: String(cols[8] || '#0f172a').trim(), concentration: String(cols[9]).trim(), origin: String(cols[10]).trim(), notes: String(cols[11]).trim(), proteinDate: protDate };
+        }).filter(item => item.tray && item.boxNum); 
         
-      } catch (error) {
-        console.error('Data Fetching Error:', error);
-        dom.loading.classList.add('hidden');
-        dom.error.classList.remove('hidden');
-        dom.error.innerText = `Database Sync Error: ${error.message}`;
+        glycerolInventory = (result.glycerol || []).map(cols => {
+          let gDate = cols[9]; if (gDate && String(gDate).includes('T')) gDate = String(gDate).split('T')[0];
+          return { boxNum: String(cols[0]).trim(), slotNum: String(cols[1]).trim(), gkdId: String(cols[2]).trim(), construct: String(cols[3]).trim(), cellStrain: String(cols[4]).trim(), person: String(cols[5]).trim(), color: String(cols[6] || '#1d4ed8').trim(), origin: String(cols[7]).trim(), notes: String(cols[8]).trim(), date: gDate };
+        }).filter(item => item.boxNum && item.slotNum);
+
+        cellCultures = (result.cells || []).map(cols => ({
+          id: String(cols[0]).trim(), cellType: String(cols[1]).trim(), doublingTime: String(cols[2]).trim(), passageNum: parseInt(cols[3])||0, density: parseFloat(cols[4])||0, volume: parseFloat(cols[5])||0, flasks: parseInt(cols[6])||0, totalCells: parseFloat(cols[7])||0, person: String(cols[8]).trim(), color: String(cols[9] || '#4f46e5').trim(), lastSplitTime: cols[10]
+        }));
+
+        viruses = (result.virus || []).map(cols => ({
+          id: String(cols[0]).trim(), passage: String(cols[1]).trim(), virusName: String(cols[2]).trim(), startTime: cols[3], imageStr: String(cols[4]).trim(), person: String(cols[5]).trim(), color: String(cols[6] || '#10b981').trim()
+        }));
+        
+        document.getElementById('loading').classList.add('hidden');
+        
+      } catch (error) { 
+        document.getElementById('loading').classList.add('hidden'); 
+        document.getElementById('error-state').classList.remove('hidden'); 
+        document.getElementById('error-state').innerText = `Sync Error: App Script block or empty response.`; 
       }
     }
 
-    // --- VIEW 1: RENDER FREEZER (A-F, 1-14) ---
-    function renderFreezer() {
-      dom.loading.classList.add('hidden');
-      dom.boxView.classList.add('hidden');
-      dom.freezerView.classList.remove('hidden');
-      dom.breadcrumbs.innerHTML = `<span class="text-blue-600 font-bold">Freezer View</span>`;
-
-      const columns = ['A', 'B', 'C', 'D', 'E', 'F'];
-      let html = `<div class="grid grid-cols-7 gap-2">`;
+    function switchTab(tab) {
+      document.getElementById('view-freezer').classList.add('hidden'); 
+      document.getElementById('view-global').classList.add('hidden'); 
+      document.getElementById('view-bio').classList.add('hidden');
       
-      html += `<div></div>`; 
+      document.getElementById('tab-freezer').className = "px-4 py-2 rounded font-bold text-sm text-cyan-200 hover:bg-cyan-800 transition-colors";
+      document.getElementById('tab-global').className = "px-4 py-2 rounded font-bold text-sm text-cyan-200 hover:bg-cyan-800 transition-colors";
+      document.getElementById('tab-bio').className = "px-4 py-2 rounded font-bold text-sm text-cyan-200 hover:bg-cyan-800 transition-colors";
+      
+      if(tab === 'freezer') { document.getElementById('tab-freezer').classList.add('bg-cyan-700', 'text-white'); document.getElementById('view-freezer').classList.remove('hidden'); showScreen('screen-master-grid'); renderFreezer(); }
+      if(tab === 'global') { document.getElementById('tab-global').classList.add('bg-cyan-700', 'text-white'); document.getElementById('view-global').classList.remove('hidden'); renderGlobalInventory(); }
+      if(tab === 'bio') { document.getElementById('tab-bio').classList.add('bg-cyan-700', 'text-white'); document.getElementById('view-bio').classList.remove('hidden'); renderBio(); }
+    }
+
+    function showScreen(screenId) {
+      document.getElementById('screen-master-grid').classList.add('hidden'); document.getElementById('screen-box-detail').classList.add('hidden'); document.getElementById('screen-glyc-detail').classList.add('hidden');
+      document.getElementById(screenId).classList.remove('hidden');
+    }
+
+    function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
+    function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+
+    // --- FREEZER LOGIC ---
+    function renderFreezer() {
+      const columns = ['A', 'B', 'C', 'D', 'E', 'F'];
+      let html = `<div class="grid grid-cols-7 gap-3"><div></div>`; 
       columns.forEach(c => html += `<div class="text-center font-bold text-slate-400 mb-2">${c}</div>`);
       
       for(let r = 1; r <= 14; r++) {
-        html += `<div class="flex items-center justify-end pr-2 font-bold text-slate-400">${r}</div>`;
+        html += `<div class="flex items-center justify-end pr-3 font-bold text-slate-400">${r}</div>`;
         columns.forEach(c => {
-          const trayId = `${c}${r}`;
-          const hasItems = inventory.some(item => item.tray === trayId);
-          const bgClass = hasItems ? 'bg-blue-50 border-blue-200' : 'bg-slate-50 border-slate-200';
+          const trayId = `${c}${r}`; const ownerColor = trayOwners[trayId]; 
+          const hasItems = inventory.some(item => item.tray === trayId) || Object.keys(glycMap).some(k => k.startsWith(trayId));
           
-          html += `
-            <div onclick="openRackModal('${trayId}')" 
-                 class="${bgClass} border rounded h-12 flex items-center justify-center cursor-pointer hover:bg-blue-100 hover:border-blue-400 shadow-sm transition-all text-sm font-bold text-slate-600">
-              ${trayId}
-            </div>`;
-        });
-      }
-      html += `</div>`;
-      dom.freezerGrid.innerHTML = html;
-    }
-
-    // --- MODAL: SELECT BOX 1-4 ---
-    function openRackModal(trayId) {
-      document.getElementById('rack-modal-title').innerText = trayId;
-      const btnContainer = document.getElementById('box-buttons-container');
-      btnContainer.innerHTML = '';
-
-      for(let b = 1; b <= 4; b++) {
-        const boxNum = String(b);
-        const boxItems = inventory.filter(i => i.tray === trayId && i.box === boxNum);
-        
-        const uniqueColors = [...new Set(boxItems.map(i => i.color))];
-        let colorDotsHtml = uniqueColors.map(color => `<div class="w-3 h-3 rounded-full shadow-sm" style="background-color: ${color}"></div>`).join('');
-        
-        btnContainer.innerHTML += `
-          <button onclick="viewBox('${trayId}', '${boxNum}')" class="w-full flex items-center justify-between p-4 bg-slate-50 hover:bg-blue-50 border border-slate-200 rounded-lg transition-colors">
-            <span class="font-bold text-slate-700">Box ${boxNum}</span>
-            <div class="flex items-center space-x-2">
-              <div class="flex space-x-1 mr-3">${colorDotsHtml}</div>
-              <span class="text-xs text-slate-500 font-medium bg-white px-2 py-1 rounded shadow-sm border border-slate-200">${boxItems.length}/81 Slots</span>
-            </div>
-          </button>
-        `;
-      }
-      dom.rackModal.classList.remove('hidden');
-    }
-
-    function closeRackModal() {
-      dom.rackModal.classList.add('hidden');
-    }
-
-    // --- VIEW 2: RENDER BOX (9x9) ---
-    function viewBox(trayId, boxNum) {
-      closeRackModal();
-      currentTray = trayId;
-      currentBox = boxNum;
-      
-      dom.freezerView.classList.add('hidden');
-      dom.boxView.classList.remove('hidden');
-      
-      document.getElementById('box-title').innerText = `Tray ${trayId} — Box ${boxNum}`;
-      dom.breadcrumbs.innerHTML = `
-        <span class="text-slate-500 hover:text-blue-600 hover:underline cursor-pointer" onclick="viewFreezer()">Freezer</span> 
-        <span class="mx-1">/</span> 
-        <span class="text-slate-500 hover:text-blue-600 hover:underline cursor-pointer" onclick="openRackModal('${trayId}')">Tray ${trayId}</span>
-        <span class="mx-1">/</span> 
-        <span class="text-blue-600 font-bold">Box ${boxNum}</span>
-      `;
-
-      const columns = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I'];
-      let html = `<div class="grid grid-cols-10 gap-1">`;
-      
-      html += `<div></div>`;
-      columns.forEach(c => html += `<div class="text-center font-bold text-slate-400 text-sm mb-1">${c}</div>`);
-      
-      for(let r = 1; r <= 9; r++) {
-        html += `<div class="flex items-center justify-end pr-2 font-bold text-slate-400 text-sm">${r}</div>`;
-        
-        columns.forEach(c => {
-          const slotId = `${c}${r}`;
-          const item = inventory.find(i => i.tray === currentTray && i.box === currentBox && i.slot === slotId);
-          
-          if (item) {
-            const tooltip = `${item.name} (${item.conc || 'N/A'})\nOrigin: ${item.origin}\nDate: ${item.date}`;
-            html += `
-              <div id="slot-${currentTray}-${currentBox}-${slotId}" title="${tooltip}" class="aspect-square flex items-center justify-center rounded text-xs font-bold text-white shadow-sm cursor-not-allowed transition-transform" style="background-color: ${item.color}; border: 1px solid rgba(0,0,0,0.1);">
-                ${slotId}
-              </div>`;
+          if (hasItems || ownerColor) {
+             let styleStr = ownerColor ? `background-color: ${ownerColor}; color: #ffffff; border-color: rgba(0,0,0,0.1);` : '';
+             let classStr = ownerColor ? '' : 'bg-cyan-50 border-cyan-200 text-cyan-800';
+             html += `<div draggable="true" ondragstart="dragStart(event, '${trayId}')" onclick="openRackModal('${trayId}')" class="border rounded h-14 flex items-center justify-center cursor-pointer shadow-sm transition-transform hover:scale-105 text-sm font-bold ${classStr}" style="${styleStr}">${trayId}</div>`;
           } else {
-            html += `
-              <div onclick="openAddModal('${slotId}')" class="aspect-square flex items-center justify-center rounded text-xs font-medium bg-slate-50 text-slate-400 border border-slate-200 hover:bg-blue-100 hover:text-blue-600 hover:border-blue-300 cursor-pointer transition-colors">
-                ${slotId}
-              </div>`;
+             html += `<div ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropTray(event, '${trayId}')" onclick="openRackModal('${trayId}')" class="border border-slate-200 border-dashed rounded h-14 flex items-center justify-center cursor-pointer text-sm font-bold bg-slate-50 text-slate-300 hover:bg-slate-100 transition-colors">${trayId}</div>`;
           }
         });
       }
-      html += `</div>`;
-      dom.boxGrid.innerHTML = html;
+      document.getElementById('freezer-grid-container').innerHTML = html + '</div>';
+
+      let glycHtml = '';
+      let uniqueGlycBoxes = new Set([...Object.values(glycMap), ...glycerolInventory.map(g => g.boxNum)]);
+      let sortedGlycBoxes = Array.from(uniqueGlycBoxes).map(Number).sort((a,b) => a-b);
+      sortedGlycBoxes.forEach(b => {
+        const stockCount = glycerolInventory.filter(g => g.boxNum === String(b)).length;
+        const mapKey = Object.keys(glycMap).find(k => glycMap[k] === String(b));
+        const onClickLogic = mapKey ? `viewGlycerolBox('${b}', '${mapKey.split('-')[0]}', '${mapKey.split('-')[1]}')` : `alert('Box ${b} has not been placed in a Tray yet.')`;
+        glycHtml += `<div onclick="${onClickLogic}" class="bg-white border border-slate-300 rounded-xl p-4 flex flex-col items-center justify-center cursor-pointer hover:bg-blue-50 hover:border-blue-300 transition-colors shadow-sm"><span class="font-bold text-slate-700">Box ${b}</span><span class="text-xs font-medium bg-slate-100 text-slate-500 px-2 py-1 rounded mt-2 border border-slate-200">${stockCount}/100 Slots</span></div>`;
+      });
+      document.getElementById('glycerol-overview-container').innerHTML = glycHtml;
     }
 
-    function viewFreezer() {
-      currentTray = null;
-      currentBox = null;
-      renderFreezer();
-    }
-
-    // --- SEARCH ENGINE ---
-    dom.searchInput.addEventListener('input', (e) => {
-      const q = e.target.value.toLowerCase().trim();
-      dom.searchResults.innerHTML = '';
-      
-      if (!q) {
-        dom.searchResults.classList.add('hidden');
-        return;
-      }
-
-      const results = inventory.filter(i => 
-        i.name.toLowerCase().includes(q) || i.notes.toLowerCase().includes(q)
-      ).slice(0, 10); 
-
-      if (results.length === 0) {
-        dom.searchResults.innerHTML = `<div class="p-4 text-sm text-slate-500">No proteins found.</div>`;
-      } else {
-        results.forEach(res => {
-          dom.searchResults.innerHTML += `
-            <div onclick="goToSearchItem('${res.tray}', '${res.box}', '${res.slot}')" class="p-3 hover:bg-blue-50 border-b border-slate-100 cursor-pointer transition-colors flex items-center justify-between">
-              <div>
-                <div class="font-bold text-slate-800">${res.name}</div>
-                <div class="text-xs text-slate-500 mt-1">Tray ${res.tray} &rarr; Box ${res.box} &rarr; Slot ${res.slot}</div>
-              </div>
-              <div class="w-4 h-4 rounded-full shadow-sm" style="background-color: ${res.color}"></div>
-            </div>
-          `;
-        });
-      }
-      dom.searchResults.classList.remove('hidden');
-    });
-
-    document.addEventListener('click', (e) => {
-      if (!e.target.closest('.relative.w-80')) dom.searchResults.classList.add('hidden');
-    });
-
-    function goToSearchItem(tray, box, slot) {
-      dom.searchResults.classList.add('hidden');
-      dom.searchInput.value = '';
-      viewBox(tray, box);
-      
-      setTimeout(() => {
-        const slotEl = document.getElementById(`slot-${tray}-${box}-${slot}`);
-        if (slotEl) {
-          slotEl.classList.add('ring-4', 'ring-yellow-400', 'scale-110', 'z-10');
-          setTimeout(() => slotEl.classList.remove('ring-4', 'ring-yellow-400', 'scale-110', 'z-10'), 2500);
-        }
-      }, 100);
-    }
-
-    // --- ADD DATA MODAL ---
-    function openAddModal(slotId) {
-      document.getElementById('modal-title-coords').innerText = `Tray ${currentTray}, Box ${currentBox}, Slot ${slotId}`;
-      
-      document.getElementById('input-tray').value = currentTray;
-      document.getElementById('input-box').value = currentBox;
-      document.getElementById('input-slot').value = slotId;
-      document.getElementById('input-date').valueAsDate = new Date();
-      
-      const savedColor = localStorage.getItem('labBoxColor');
-      if (savedColor) document.getElementById('input-color').value = savedColor;
-      
-      dom.addModal.classList.remove('hidden');
-      setTimeout(() => document.getElementById('input-name').focus(), 10);
-    }
-
-    function closeAddModal() {
-      dom.addModal.classList.add('hidden');
-      document.getElementById('add-sample-form').reset();
-    }
-
-    document.getElementById('add-sample-form').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      
-      const submitBtn = document.getElementById('btn-submit');
-      const originalText = submitBtn.innerText;
-      submitBtn.innerText = 'Saving...';
-      submitBtn.disabled = true;
-
-      const payload = {
-        tray: document.getElementById('input-tray').value,
-        box: document.getElementById('input-box').value,
-        slot: document.getElementById('input-slot').value, 
-        proteinName: document.getElementById('input-name').value,
-        concentration: document.getElementById('input-conc').value,
-        origin: document.getElementById('input-origin').value,
-        notes: document.getElementById('input-notes').value,
-        date: document.getElementById('input-date').value,
-        color: document.getElementById('input-color').value
-      };
-
-      localStorage.setItem('labBoxColor', payload.color);
-
+    function dragStart(ev, trayId) { ev.dataTransfer.setData("text/plain", trayId); ev.dataTransfer.effectAllowed = "move"; }
+    function allowDrop(ev) { ev.preventDefault(); ev.currentTarget.classList.add('drag-over'); }
+    function dragLeave(ev) { ev.currentTarget.classList.remove('drag-over'); }
+    async function dropTray(ev, newTrayId) {
+      ev.preventDefault(); ev.currentTarget.classList.remove('drag-over');
+      var oldTrayId = ev.dataTransfer.getData("text/plain"); if (oldTrayId === newTrayId) return;
+      if(!confirm(`Move all contents from ${oldTrayId} to empty space ${newTrayId}?`)) return;
+      document.getElementById('loading').classList.remove('hidden'); document.getElementById('view-freezer').classList.add('hidden');
       try {
-        const response = await fetch(GAS_WEB_APP_URL, {
-          method: 'POST',
-          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-          body: JSON.stringify(payload)
+        await fetch(GAS_WEB_APP_URL, { method: 'POST', body: JSON.stringify({ action: 'moveTray', oldTray: oldTrayId, newTray: newTrayId }) });
+        inventory.forEach(i => { if(i.tray === oldTrayId) i.tray = newTrayId; });
+        if (trayOwners[oldTrayId]) { trayOwners[newTrayId] = trayOwners[oldTrayId]; delete trayOwners[oldTrayId]; }
+        Object.keys(glycMap).forEach(k => { if(k.startsWith(oldTrayId+'-')) { var parts = k.split('-'); glycMap[newTrayId+'-'+parts[1]] = glycMap[k]; delete glycMap[k]; } });
+        document.getElementById('loading').classList.add('hidden'); document.getElementById('view-freezer').classList.remove('hidden'); renderFreezer();
+      } catch (e) { alert("Failed to move tray."); document.getElementById('loading').classList.add('hidden'); document.getElementById('view-freezer').classList.remove('hidden'); }
+    }
+
+    // --- GLOBAL INVENTORY LOGIC ---
+    function renderGlobalInventory() {
+      let html = '';
+      inventory.filter(i => i.proteinName).forEach(p => {
+        html += `<tr class="hover:bg-slate-50 cursor-pointer" onclick="goToProteinSearch('${p.tray}', '${p.boxNum}', '${p.pillboxNum}', '${p.entryNum}')"><td class="p-3"><span class="bg-cyan-100 text-cyan-800 text-xs font-bold px-2 py-1 rounded">Protein</span></td><td class="p-3 text-slate-500 font-medium">T${p.tray} / B${p.boxNum} / P${p.pillboxNum} / S${p.entryNum}</td><td class="p-3 font-bold text-slate-800 flex items-center gap-2"><div class="w-3 h-3 rounded-full" style="background-color:${p.color}"></div>${p.proteinName}</td><td class="p-3 text-slate-600">${p.concentration} | ${p.origin}</td><td class="p-3 text-slate-500 text-xs truncate max-w-[200px]" title="${p.notes}">${p.notes}</td></tr>`;
+      });
+      glycerolInventory.forEach(g => {
+        const mapKey = Object.keys(glycMap).find(k => glycMap[k] === g.boxNum);
+        const loc = mapKey ? `T${mapKey.split('-')[0]} / GB${g.boxNum} / S${g.slotNum}` : `GB${g.boxNum} / S${g.slotNum}`;
+        const onClick = mapKey ? `goToGlycerolSearch('${mapKey}', '${g.boxNum}', '${g.slotNum}')` : '';
+        html += `<tr class="hover:bg-slate-50 cursor-pointer" onclick="${onClick}"><td class="p-3"><span class="bg-blue-100 text-blue-800 text-xs font-bold px-2 py-1 rounded">Glycerol</span></td><td class="p-3 text-slate-500 font-medium">${loc}</td><td class="p-3 font-bold text-blue-900 flex items-center gap-2"><div class="w-3 h-3 rounded-full" style="background-color:${g.color}"></div>${g.gkdId}</td><td class="p-3 text-slate-600">${g.construct} | ${g.cellStrain}</td><td class="p-3 text-slate-500 text-xs truncate max-w-[200px]" title="${g.notes}">${g.notes}</td></tr>`;
+      });
+      document.getElementById('global-table-body').innerHTML = html;
+    }
+
+    // --- BIO TRACKER LOGIC ---
+    function renderBio() { renderCalendar(); renderCellCultures(); renderViruses(); }
+
+    function renderCalendar() {
+      let html = ''; const days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+      for(let i=0; i<7; i++) {
+        let d = new Date(); d.setDate(d.getDate() + i); d.setHours(12,0,0,0);
+        let dayName = i===0 ? "Today" : days[d.getDay()];
+        
+        let cellEvents = '';
+        cellCultures.forEach(c => {
+          let dtMax = c.doublingTime.includes('-') ? parseFloat(c.doublingTime.split('-')[1]) : parseFloat(c.doublingTime);
+          let hrs = (d.getTime() - new Date(c.lastSplitTime).getTime()) / 3600000;
+          let den = (c.density * Math.pow(2, hrs / dtMax)).toFixed(1);
+          let colorClass = den > 10 ? 'text-red-400 font-bold' : 'text-slate-300';
+          cellEvents += `<div class="text-[10px] truncate mb-1 border-l-2 pl-1" style="border-left-color:${c.color}">${c.cellType}: <span class="${colorClass}">${den}e6</span></div>`;
         });
 
-        const result = await response.json();
-        
-        if (result.status === 'success') {
-          inventory.push(payload);
-          viewBox(currentTray, currentBox); 
-          closeAddModal();
-        } else {
-          throw new Error(result.message);
-        }
-      } catch (error) {
-        console.error('Save failed:', error);
-        alert('Failed to save. Check your connection or Apps Script permissions.');
-      } finally {
-        submitBtn.innerText = originalText;
-        submitBtn.disabled = false;
+        let virEvents = '';
+        viruses.forEach(v => {
+          let hrs = (d.getTime() - new Date(v.startTime).getTime()) / 3600000;
+          let daysElapsed = hrs / 24;
+          if (daysElapsed >= 0) {
+            let label = ""; let color = "border-slate-500";
+            if (v.passage === 'P1') {
+              if (daysElapsed >= 7 && daysElapsed < 8) { label = "Harvest"; color = "border-emerald-500 text-emerald-400 font-bold"; }
+              else if (daysElapsed >= 8) { label = "Redo/Warning"; color = "border-red-500 text-red-400 font-bold"; }
+            } else {
+              if (daysElapsed >= 4 && daysElapsed < 6) { label = "Harvest"; color = "border-emerald-500 text-emerald-400 font-bold"; }
+              else if (daysElapsed >= 6) { label = "Redo/Warning"; color = "border-red-500 text-red-400 font-bold"; }
+            }
+            if (label) virEvents += `<div class="text-[10px] truncate mb-1 border-l-2 pl-1 ${color}">${v.virusName} (${label})</div>`;
+          }
+        });
+
+        html += `<div class="calendar-col bg-slate-900 border border-slate-700 rounded p-3 flex-shrink-0"><div class="text-xs font-bold text-slate-400 border-b border-slate-700 pb-1 mb-2">${dayName} ${d.getMonth()+1}/${d.getDate()}</div><div class="space-y-2"><div class="min-h-[40px]">${cellEvents||'<span class="text-[10px] text-slate-600">No cells</span>'}</div><div class="border-t border-slate-700 pt-2 min-h-[40px]">${virEvents||'<span class="text-[10px] text-slate-600">No virus</span>'}</div></div></div>`;
       }
-    });
+      document.getElementById('calendar-container').innerHTML = html;
+    }
+
+    function renderCellCultures() {
+      const container = document.getElementById('cells-grid-container');
+      if (cellCultures.length === 0) { container.innerHTML = `<div class="text-center text-slate-400 py-10">No active cell cultures.</div>`; return; }
+      let html = '';
+      cellCultures.forEach(c => {
+        let dtMin = 24, dtMax = 24;
+        if (c.doublingTime.includes('-')) { let pts = c.doublingTime.split('-'); dtMin = parseFloat(pts[0]); dtMax = parseFloat(pts[1]); } else { dtMin = parseFloat(c.doublingTime); dtMax = dtMin; }
+        let elapsedHrs = (Date.now() - new Date(c.lastSplitTime).getTime()) / 3600000;
+        let expectedMin = c.density * Math.pow(2, elapsedHrs / dtMax); let expectedMax = c.density * Math.pow(2, elapsedHrs / dtMin);
+        let expectedStr = expectedMin.toFixed(2); if(dtMin !== dtMax) expectedStr += ` - ${expectedMax.toFixed(2)}`;
+        let totalCells = (c.density * c.volume * c.flasks).toFixed(1);
+
+        html += `<div class="bg-white border-t-4 rounded-xl shadow-sm p-5 border border-slate-200" style="border-top-color: ${c.color}"><div class="flex justify-between items-start mb-4"><div><h3 class="font-bold text-lg text-slate-800">${c.cellType}</h3><p class="text-xs text-slate-500 font-medium">Passage ${c.passageNum} | By ${c.person}</p></div><span class="bg-indigo-50 text-indigo-700 text-xs font-bold px-2 py-1 rounded border border-indigo-100">DT: ${c.doublingTime}h</span></div><div class="bg-slate-50 p-3 rounded border border-slate-100 mb-4 text-center"><p class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Expected Density Live</p><p class="text-2xl font-black text-indigo-600">${expectedStr} <span class="text-sm text-slate-500 font-medium tracking-normal">e6/mL</span></p></div><div class="grid grid-cols-3 gap-2 text-center text-sm mb-4"><div class="bg-slate-50 py-2 rounded"><div class="text-slate-400 text-[10px] font-bold uppercase">Flasks</div><div class="font-bold text-slate-700">${c.flasks}</div></div><div class="bg-slate-50 py-2 rounded"><div class="text-slate-400 text-[10px] font-bold uppercase">Vol/ea</div><div class="font-bold text-slate-700">${c.volume} mL</div></div><div class="bg-slate-50 py-2 rounded"><div class="text-slate-400 text-[10px] font-bold uppercase">Total Cells</div><div class="font-bold text-slate-700">${totalCells}e6</div></div></div><button onclick="openCellModal('${c.id}')" class="w-full bg-slate-100 hover:bg-indigo-50 hover:text-indigo-700 text-slate-600 font-bold py-2 rounded transition-colors">Split / Update Culture</button></div>`;
+      });
+      container.innerHTML = html;
+    }
+
+    function renderViruses() {
+      const container = document.getElementById('virus-grid-container');
+      if (viruses.length === 0) { container.innerHTML = `<div class="text-center text-slate-400 py-10">No active infections.</div>`; return; }
+      let html = '';
+      viruses.forEach(v => {
+        let elapsedHrs = (Date.now() - new Date(v.startTime).getTime()) / 3600000;
+        let daysElapsed = elapsedHrs / 24;
+        let progMax = v.passage === 'P1' ? 7 : 4;
+        let progPct = Math.min((daysElapsed / progMax) * 100, 100);
+        let statusColor = "bg-cyan-500"; let statusText = `Day ${daysElapsed.toFixed(1)} / ${progMax}`;
+        
+        if (v.passage === 'P1') {
+          if (daysElapsed >= 7 && daysElapsed < 8) { statusColor = "bg-emerald-500"; statusText = "Ready to Harvest"; }
+          else if (daysElapsed >= 8 && daysElapsed < 9) { statusColor = "bg-yellow-400"; statusText = "Harvest NOW (Avoid lysis)"; }
+          else if (daysElapsed >= 9) { statusColor = "bg-red-500"; statusText = "Re-do Transfection"; }
+        } else {
+          if (daysElapsed >= 4 && daysElapsed < 6) { statusColor = "bg-emerald-500"; statusText = "Ready to Harvest"; }
+          else if (daysElapsed >= 6 && daysElapsed < 7) { statusColor = "bg-yellow-400"; statusText = "Harvest NOW (Avoid lysis)"; }
+          else if (daysElapsed >= 7) { statusColor = "bg-red-500"; statusText = "Re-do Infection"; }
+        }
+
+        let imgHtml = v.imageStr ? `<button onclick="viewGel('${v.imageStr}')" class="text-xs text-blue-500 hover:underline">📷 View Gel</button>` : `<span class="text-xs text-slate-400">No Image</span>`;
+        html += `<div class="bg-white border rounded-xl shadow-sm p-4 border-slate-200"><div class="flex justify-between items-start mb-2"><div><h3 class="font-bold text-slate-800 flex items-center gap-2"><div class="w-3 h-3 rounded-full" style="background-color:${v.color}"></div>${v.virusName}</h3><p class="text-xs text-slate-500 font-medium">${v.passage} | Started: ${new Date(v.startTime).toLocaleDateString()}</p></div>${imgHtml}</div><div class="mb-3"><div class="flex justify-between text-[10px] font-bold uppercase tracking-wider mb-1"><span class="text-slate-500">Progress</span><span class="${statusColor.replace('bg-','text-')}">${statusText}</span></div><div class="w-full bg-slate-100 rounded-full h-2.5"><div class="${statusColor} h-2.5 rounded-full" style="width: ${progPct}%"></div></div></div><button onclick="harvestVirus('${v.id}')" class="w-full border border-emerald-200 text-emerald-600 hover:bg-emerald-50 font-bold py-1.5 text-sm rounded transition-colors">✔ Harvest / Complete</button></div>`;
+      });
+      container.innerHTML = html;
+    }
+
+    function viewGel(str) { document.getElementById('viewer-img').src = str; openModal('image-viewer-modal'); }
+
+    // --- SHARED MODAL FUNCTIONS ---
+    function openSettingsModal() { 
+      const list = document.getElementById('team-list'); 
+      list.innerHTML = team.length === 0 ? '<div class="text-sm text-slate-400">No team members added yet.</div>' : ''; 
+      team.forEach(u => { list.innerHTML += `<div class="flex items-center space-x-3 p-2 bg-slate-50 rounded border"><div class="w-4 h-4 rounded-full" style="background-color:${u.color}"></div><span class="font-bold text-slate-700">${u.name}</span></div>`; }); 
+      openModal('settings-modal'); 
+    }
+    
+    function populateOwnerDropdowns(trayId = null) { 
+      const pSelect = document.getElementById('input-prot-owner'); 
+      const gSelect = document.getElementById('input-glyc-owner'); 
+      const tSelect = document.getElementById('select-tray-owner'); 
+      const cSelect = document.getElementById('input-cell-owner'); 
+      const vSelect = document.getElementById('input-virus-owner'); 
+      let options = `<option value="">-- Unassigned --</option>`; 
+      team.forEach(u => options += `<option value="${u.color}|${u.name}">${u.name}</option>`); 
+      if(pSelect) pSelect.innerHTML = options; if(gSelect) gSelect.innerHTML = options; if(tSelect) tSelect.innerHTML = options; if(cSelect) cSelect.innerHTML = options; if(vSelect) vSelect.innerHTML = options; 
+      if (trayId && trayOwners[trayId] && tSelect) { const matchingColor = trayOwners[trayId]; Array.from(tSelect.options).forEach(opt => { if(opt.value.startsWith(matchingColor)) tSelect.value = opt.value; }); } 
+    }
+
+    async function assignTrayOwner(combinedValue) { 
+      const colorValue = combinedValue.split('|')[0]; 
+      try { trayOwners[current.tray] = colorValue; await fetch(GAS_WEB_APP_URL, { method: 'POST', body: JSON.stringify({ action: 'saveSetting', settingType: 'Tray', settingKey: current.tray, settingValue: colorValue }) }); renderFreezer(); } 
+      catch(e) { alert('Failed to assign tray owner'); } 
+    }
+
+    function getBoxName(tray, boxNum) { const item = inventory.find(i => i.tray === tray && i.boxNum === String(boxNum) && i.boxName !== ""); return item ? item.boxName : null; }
+
+    function openRackModal(trayId) {
+      current.tray = trayId; document.getElementById('rack-modal-title').innerText = trayId; populateOwnerDropdowns(trayId);
+      const btnContainer = document.getElementById('box-buttons-container'); btnContainer.innerHTML = '';
+      for(let b = 1; b <= 4; b++) {
+        const customName = getBoxName(trayId, b); const mapKey = `${trayId}-${b}`; const isGlyc = glycMap[mapKey];
+        if (isGlyc) { btnContainer.innerHTML += `<div class="flex space-x-2"><button onclick="viewGlycerolBox('${isGlyc}', '${trayId}', '${b}')" class="flex-grow text-left p-4 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-lg font-bold text-blue-900 border-l-4 border-l-blue-600">Box ${b} - GLYCEROL (Box ${isGlyc})</button><button onclick="toggleBoxMode('${trayId}', '${b}')" class="w-12 flex items-center justify-center bg-slate-100 hover:bg-slate-200 border border-slate-200 rounded-lg text-slate-500">🔄</button></div>`;
+        } else { const displayName = customName ? `Box ${b} - ${customName}` : `Box ${b}`; btnContainer.innerHTML += `<div class="flex space-x-2"><button onclick="viewBox('${trayId}', '${b}')" class="flex-grow text-left p-4 bg-slate-50 hover:bg-cyan-50 border border-slate-200 rounded-lg font-bold text-slate-700 border-l-4 border-l-cyan-600">${displayName}</button><button onclick="openRenameBoxModal('${b}', '${customName || ''}')" class="w-10 bg-slate-100 hover:bg-slate-200 border border-slate-200 rounded-lg text-slate-500">✎</button><button onclick="toggleBoxMode('${trayId}', '${b}')" class="w-10 bg-slate-100 hover:bg-slate-200 border border-slate-200 rounded-lg text-slate-500">🔄</button></div>`; }
+      } openModal('rack-modal');
+    }
+
+    async function toggleBoxMode(trayId, b) { const mapKey = `${trayId}-${b}`; if (glycMap[mapKey]) { if(confirm(`Unlink Glycerol Box?`)) { delete glycMap[mapKey]; await fetch(GAS_WEB_APP_URL, { method: 'POST', body: JSON.stringify({ action: 'saveSetting', settingType: 'GlycMap', settingKey: mapKey, settingValue: "" }) }); openRackModal(trayId); renderFreezer(); } } else { const glycId = prompt("Assign a Glycerol Box ID to this coordinate:"); if (glycId && glycId.trim() !== "") { glycMap[mapKey] = glycId.trim(); await fetch(GAS_WEB_APP_URL, { method: 'POST', body: JSON.stringify({ action: 'saveSetting', settingType: 'GlycMap', settingKey: mapKey, settingValue: glycId.trim() }) }); openRackModal(trayId); renderFreezer(); } } }
+    function openRenameBoxModal(boxNum, currentName) { current.boxNum = boxNum; document.getElementById('rename-box-title').innerText = `Tray ${current.tray}, Box ${boxNum}`; document.getElementById('input-new-box-name').value = currentName; closeModal('rack-modal'); openModal('rename-box-modal'); }
+    
+    async function submitRenameBox() { const newName = document.getElementById('input-new-box-name').value; const btn = document.getElementById('btn-rename-box'); btn.innerText = "Saving..."; btn.disabled = true; try { await fetch(GAS_WEB_APP_URL, { method: 'POST', body: JSON.stringify({ action: 'renameBox', tray: current.tray, boxNum: current.boxNum, newName: newName }) }); let found = false; inventory.forEach(i => { if(i.tray === current.tray && i.boxNum === String(current.boxNum)) { i.boxName = newName; found = true; } }); if (!found) inventory.push({ tray: current.tray, boxNum: String(current.boxNum), boxName: newName, pillboxNum: "", pillboxName: "", pillboxDate: "", entryNum: "", proteinName: "", color: "", concentration: "", origin: "", notes: "", proteinDate: "" }); closeModal('rename-box-modal'); openRackModal(current.tray); } catch (err) { alert('Failed.'); } finally { btn.innerText = "Save"; btn.disabled = false; } }
+
+    function viewBox(trayId, boxNum) {
+      closeModal('rack-modal'); current.tray = trayId; current.boxNum = boxNum; current.boxName = getBoxName(trayId, boxNum) || ''; showScreen('screen-box-detail'); document.getElementById('box-title').innerText = `Tray ${trayId} > Box ${boxNum}`; let html = '';
+      for(let p = 1; p <= 8; p++) {
+        let pItems = inventory.filter(i => i.tray === trayId && i.boxNum === String(boxNum) && i.pillboxNum === String(p));
+        if (pItems.length === 0) { html += `<div class="border-2 border-dashed border-slate-300 rounded-xl bg-slate-50 flex flex-col items-center justify-center h-56 text-slate-400 hover:bg-indigo-50 cursor-pointer" onclick="openCreatePillboxModal('${p}')"><span class="text-3xl mb-2">+</span><span class="font-bold text-sm">Create Pillbox ${p}</span></div>`; } 
+        else {
+          let pMeta = pItems[0]; html += `<div id="pillbox-${trayId}-${boxNum}-${p}" class="border border-indigo-200 rounded-xl overflow-hidden bg-white shadow-sm flex flex-col h-56"><div class="bg-indigo-50 p-3 border-b border-indigo-100 flex justify-between items-center"><span class="font-bold text-indigo-900 text-sm truncate" title="${pMeta.pillboxName}">${p} - ${pMeta.pillboxName}</span><span class="text-xs text-indigo-400 font-medium">${pMeta.pillboxDate}</span></div><div class="flex-grow flex flex-col divide-y divide-slate-100">`;
+          for(let e = 1; e <= 3; e++) { let entry = pItems.find(i => i.entryNum === String(e) && i.proteinName !== ""); if (entry) { html += `<div id="entry-${trayId}-${boxNum}-${p}-${e}" title="Origin: ${entry.origin}\nNotes: ${entry.notes}\nDate: ${entry.proteinDate}" class="flex-1 p-3 flex items-center justify-between hover:bg-slate-50 cursor-help"><span class="text-sm font-bold text-slate-800 truncate pr-2">${entry.proteinName} <span class="text-xs text-slate-400 font-normal ml-1">${entry.concentration}</span></span><div class="w-4 h-4 rounded shadow-sm" style="background-color: ${entry.color}"></div></div>`; } else { html += `<button onclick="openAddProteinModal('${p}', '${pMeta.pillboxName}', '${pMeta.pillboxDate}', '${e}')" class="flex-1 p-2 text-xs font-bold text-slate-300 hover:text-emerald-600 uppercase">+ Add Protein ${e}</button>`; } } html += `</div></div>`;
+        }
+      } document.getElementById('box-grid-container').innerHTML = html;
+    }
+
+    function viewGlycerolBox(glycBoxId, trayId, boxNum) {
+      closeModal('rack-modal'); current.glycBoxId = glycBoxId; current.tray = trayId; current.boxNum = boxNum; showScreen('screen-glyc-detail'); document.getElementById('glyc-box-title').innerText = `Tray ${trayId} > Box ${boxNum} (Glycerol Box ${glycBoxId})`;
+      let html = `<div class="overflow-x-auto max-h-[600px] overflow-y-auto"><table class="w-full text-left text-sm"><thead class="bg-slate-100 border-b border-slate-200 text-slate-600 uppercase text-xs sticky top-0 z-10"><tr><th class="p-3 w-16 text-center">Slot</th><th class="p-3">GKD ID</th><th class="p-3">Construct</th><th class="p-3">Strain</th><th class="p-3">Origin / Vector</th><th class="p-3 text-right">Actions</th></tr></thead><tbody class="divide-y divide-slate-100">`;
+      for(let s = 1; s <= 100; s++) {
+        let entry = glycerolInventory.find(i => i.boxNum === String(glycBoxId) && i.slotNum === String(s));
+        if (entry) { html += `<tr id="glyc-slot-${glycBoxId}-${s}" class="hover:bg-slate-50 group"><td class="p-3 text-center font-bold text-slate-400">${s}</td><td class="p-3 font-bold text-blue-700 flex items-center gap-2"><div class="w-3 h-3 rounded-full shadow-sm" style="background-color: ${entry.color}"></div>${entry.gkdId}</td><td class="p-3 font-medium">${entry.construct}</td><td class="p-3 text-slate-600">${entry.cellStrain}</td><td class="p-3 text-slate-600">${entry.origin}</td><td class="p-3 text-right"><button onclick="openEditGlycerolModal('${s}')" class="text-blue-500 hover:text-blue-700 font-medium mr-3 opacity-0 group-hover:opacity-100 transition-opacity">Edit</button><button onclick="deleteGlycerol('${s}')" class="text-red-400 hover:text-red-600 font-medium opacity-0 group-hover:opacity-100 transition-opacity">Del</button></td></tr>`; } 
+        else { html += `<tr id="glyc-slot-${glycBoxId}-${s}" class="hover:bg-slate-50 group"><td class="p-3 text-center font-medium text-slate-300">${s}</td><td colspan="4" class="p-3 text-slate-400 italic text-xs">Empty Slot</td><td class="p-3 text-right"><button onclick="openAddGlycerolModal('${s}')" class="text-blue-500 hover:text-blue-700 font-medium opacity-0 group-hover:opacity-100">+ Add Entry</button></td></tr>`; }
+      } html += `</tbody></table></div>`; document.getElementById('glyc-list-container').innerHTML = html;
+    }
+
+    function openCreatePillboxModal(pNum) { current.pillboxNum = pNum; document.getElementById('create-pillbox-title').innerText = `#${pNum}`; document.getElementById('input-pillbox-date').valueAsDate = new Date(); openModal('create-pillbox-modal'); }
+    function openAddProteinModal(pNum, pName, pDate, eNum) { current.pillboxNum = pNum; current.pillboxName = pName; current.pillboxDate = pDate; current.entryNum = eNum; document.getElementById('add-protein-title').innerText = `Slot ${eNum}`; document.getElementById('input-prot-date').valueAsDate = new Date(); populateOwnerDropdowns(); const savedColor = localStorage.getItem('labOwnerColor'); if (savedColor) { const sel = document.getElementById('input-prot-owner'); Array.from(sel.options).forEach(opt => { if(opt.value.startsWith(savedColor)) sel.value = opt.value; }); } openModal('add-protein-modal'); }
+    function openAddGlycerolModal(slotNum) { current.glycSlotNum = slotNum; document.getElementById('form-add-glycerol').reset(); document.getElementById('input-glyc-date').valueAsDate = new Date(); populateOwnerDropdowns(); const savedColor = localStorage.getItem('labOwnerColor'); if (savedColor) { const sel = document.getElementById('input-glyc-owner'); Array.from(sel.options).forEach(opt => { if(opt.value.startsWith(savedColor)) sel.value = opt.value; }); } openModal('add-glycerol-modal'); }
+    function openEditGlycerolModal(slotNum) { current.glycSlotNum = slotNum; const entry = glycerolInventory.find(i => i.boxNum === String(current.glycBoxId) && i.slotNum === String(slotNum)); if (!entry) return; populateOwnerDropdowns(); document.getElementById('input-glyc-gkd').value = entry.gkdId; document.getElementById('input-glyc-construct').value = entry.construct; document.getElementById('input-glyc-strain').value = entry.cellStrain; document.getElementById('input-glyc-origin').value = entry.origin; document.getElementById('input-glyc-notes').value = entry.notes; document.getElementById('input-glyc-date').value = entry.date; const sel = document.getElementById('input-glyc-owner'); Array.from(sel.options).forEach(opt => { if(opt.value.startsWith(entry.color)) sel.value = opt.value; }); openModal('add-glycerol-modal'); }
+    
+    function autoFillDoubling() { const type = document.getElementById('input-cell-type').value; const dtInput = document.getElementById('input-cell-doubling'); if (type === 'Sf9') dtInput.value = '24-30'; else if (type === 'High Five') dtInput.value = '18'; else dtInput.value = ''; }
+    function openCellModal(existingId = null) { document.getElementById('form-cell').reset(); populateOwnerDropdowns(); if(existingId) { const c = cellCultures.find(x => x.id === existingId); document.getElementById('cell-modal-title').innerText = "Split Culture"; document.getElementById('input-cell-id').value = c.id; const typeSelect = document.getElementById('input-cell-type'); if(Array.from(typeSelect.options).some(o => o.value === c.cellType)) { typeSelect.value = c.cellType; } else { typeSelect.value = 'Custom'; } document.getElementById('input-cell-doubling').value = c.doublingTime; document.getElementById('input-cell-passage').value = parseInt(c.passageNum) + 1; document.getElementById('input-cell-flasks').value = c.flasks; document.getElementById('input-cell-vol').value = c.volume; const ownerSel = document.getElementById('input-cell-owner'); Array.from(ownerSel.options).forEach(opt => { if(opt.value.startsWith(c.color)) ownerSel.value = opt.value; }); } else { document.getElementById('cell-modal-title').innerText = "New Cell Culture"; document.getElementById('input-cell-id').value = ""; } openModal('cell-modal'); }
+    function openVirusModal() { document.getElementById('form-virus').reset(); document.getElementById('input-virus-time').value = new Date().toISOString().slice(0, 16); populateOwnerDropdowns(); openModal('virus-modal'); }
+
+    // --- SAFE EVENT LISTENERS ---
+    function safeAddListener(id, event, handler) { const el = document.getElementById(id); if (el) { el.addEventListener(event, handler); } }
+
+    safeAddListener('form-add-user', 'submit', async (e) => { e.preventDefault(); const btn = document.getElementById('btn-add-user'); btn.innerText = "..."; btn.disabled = true; const name = document.getElementById('input-new-user').value; const color = document.getElementById('input-new-color').value; try { await fetch(GAS_WEB_APP_URL, { method: 'POST', body: JSON.stringify({ action: 'saveSetting', settingType: 'User', settingKey: name, settingValue: color }) }); team.push({name, color}); document.getElementById('form-add-user').reset(); openSettingsModal(); } catch(err) { alert('Failed to add user'); } finally { btn.innerText = "Add"; btn.disabled = false; } });
+    safeAddListener('form-create-pillbox', 'submit', async (e) => { e.preventDefault(); const btn = document.getElementById('btn-create-pillbox'); btn.innerText = "Saving..."; btn.disabled = true; const payload = { action: 'createPillbox', tray: current.tray, boxNum: current.boxNum, boxName: current.boxName, pillboxNum: current.pillboxNum, pillboxName: document.getElementById('input-pillbox-name').value, pillboxDate: document.getElementById('input-pillbox-date').value }; try { await fetch(GAS_WEB_APP_URL, { method: 'POST', body: JSON.stringify(payload) }); inventory.push(payload); closeModal('create-pillbox-modal'); document.getElementById('form-create-pillbox').reset(); viewBox(current.tray, current.boxNum); } catch (err) { alert('Failed.'); } finally { btn.innerText = "Create"; btn.disabled = false; } });
+    safeAddListener('form-add-protein', 'submit', async (e) => { e.preventDefault(); const btn = document.getElementById('btn-add-protein'); btn.innerText = "Saving..."; btn.disabled = true; const combinedVal = document.getElementById('input-prot-owner').value; const selectedColor = combinedVal ? combinedVal.split('|')[0] : '#0f172a'; const payload = { action: 'saveProtein', tray: current.tray, boxNum: current.boxNum, boxName: current.boxName, pillboxNum: current.pillboxNum, pillboxName: current.pillboxName, pillboxDate: current.pillboxDate, entryNum: current.entryNum, proteinName: document.getElementById('input-prot-name').value, color: selectedColor, concentration: document.getElementById('input-prot-conc').value, origin: document.getElementById('input-prot-origin').value, notes: document.getElementById('input-prot-notes').value, date: document.getElementById('input-prot-date').value }; localStorage.setItem('labOwnerColor', selectedColor); try { await fetch(GAS_WEB_APP_URL, { method: 'POST', body: JSON.stringify(payload) }); inventory.push(payload); closeModal('add-protein-modal'); document.getElementById('form-add-protein').reset(); viewBox(current.tray, current.boxNum); } catch (err) { alert('Failed.'); } finally { btn.innerText = "Save"; btn.disabled = false; } });
+    safeAddListener('form-add-glycerol', 'submit', async (e) => { e.preventDefault(); const btn = document.getElementById('btn-add-glycerol'); btn.innerText = "Saving..."; btn.disabled = true; const combinedVal = document.getElementById('input-glyc-owner').value; const selectedColor = combinedVal ? combinedVal.split('|')[0] : '#1d4ed8'; const selectedPerson = combinedVal ? combinedVal.split('|')[1] : 'Unknown'; const payload = { action: 'saveGlycerol', boxNum: current.glycBoxId, slotNum: current.glycSlotNum, gkdId: document.getElementById('input-glyc-gkd').value, construct: document.getElementById('input-glyc-construct').value, cellStrain: document.getElementById('input-glyc-strain').value, person: selectedPerson, color: selectedColor, origin: document.getElementById('input-glyc-origin').value, notes: document.getElementById('input-glyc-notes').value, date: document.getElementById('input-glyc-date').value }; try { await fetch(GAS_WEB_APP_URL, { method: 'POST', body: JSON.stringify(payload) }); const existingIdx = glycerolInventory.findIndex(i => i.boxNum === payload.boxNum && i.slotNum === payload.slotNum); if (existingIdx >= 0) glycerolInventory[existingIdx] = payload; else glycerolInventory.push(payload); closeModal('add-glycerol-modal'); viewGlycerolBox(current.glycBoxId, current.tray, current.boxNum); } catch (err) { alert('Failed.'); } finally { btn.innerText = "Save"; btn.disabled = false; } });
+    safeAddListener('form-cell', 'submit', async (e) => { e.preventDefault(); const btn = document.getElementById('btn-save-cell'); btn.innerText = "Saving..."; btn.disabled = true; const combinedVal = document.getElementById('input-cell-owner').value; const col = combinedVal ? combinedVal.split('|')[0] : '#4f46e5'; const per = combinedVal ? combinedVal.split('|')[1] : 'Unknown'; const den = parseFloat(document.getElementById('input-cell-density').value); const vol = parseFloat(document.getElementById('input-cell-vol').value); const fls = parseInt(document.getElementById('input-cell-flasks').value); const payload = { action: 'saveCulture', id: document.getElementById('input-cell-id').value, cellType: document.getElementById('input-cell-type').value, doublingTime: document.getElementById('input-cell-doubling').value, passageNum: document.getElementById('input-cell-passage').value, density: den, volume: vol, flasks: fls, totalCells: den * vol * fls, person: per, color: col, lastSplitTime: new Date().toISOString() }; try { await fetch(GAS_WEB_APP_URL, { method: 'POST', body: JSON.stringify(payload) }); await fetchInventoryData(); closeModal('cell-modal'); renderBio(); } catch (err) { alert('Failed to save cell culture.'); } finally { btn.innerText = "Save Culture"; btn.disabled = false; } });
+    
+    function compressImage(file, callback) { const reader = new FileReader(); reader.onload = (e) => { const img = new Image(); img.onload = () => { const canvas = document.createElement('canvas'); const maxW = 400; const scale = Math.min(maxW / img.width, 1); canvas.width = img.width * scale; canvas.height = img.height * scale; const ctx = canvas.getContext('2d'); ctx.drawImage(img, 0, 0, canvas.width, canvas.height); callback(canvas.toDataURL('image/jpeg', 0.6)); }; img.src = e.target.result; }; reader.readAsDataURL(file); }
+    
+    safeAddListener('form-virus', 'submit', async (e) => { e.preventDefault(); const btn = document.getElementById('btn-save-virus'); btn.innerText = "Saving..."; btn.disabled = true; const combinedVal = document.getElementById('input-virus-owner').value; const col = combinedVal ? combinedVal.split('|')[0] : '#10b981'; const per = combinedVal ? combinedVal.split('|')[1] : 'Unknown'; const fileInput = document.getElementById('input-virus-file'); const sendPayload = async (imgStr) => { const payload = { action: 'saveVirus', passage: document.getElementById('input-virus-passage').value, virusName: document.getElementById('input-virus-name').value, startTime: document.getElementById('input-virus-time').value, person: per, color: col, imageStr: imgStr }; try { await fetch(GAS_WEB_APP_URL, { method: 'POST', body: JSON.stringify(payload) }); await fetchInventoryData(); closeModal('virus-modal'); renderBio(); } catch (err) { alert('Failed to save virus.'); } finally { btn.innerText = "Save Virus"; btn.disabled = false; } }; if (fileInput.files && fileInput.files[0]) { compressImage(fileInput.files[0], sendPayload); } else { sendPayload(""); } });
+    safeAddListener('global-search', 'input', (e) => { const term = e.target.value.toLowerCase(); const rows = document.getElementById('global-table-body').getElementsByTagName('tr'); for(let r of rows) { r.style.display = r.innerText.toLowerCase().includes(term) ? '' : 'none'; } });
+    safeAddListener('search-input', 'input', (e) => { const q = e.target.value.toLowerCase().trim(); const resContainer = document.getElementById('search-results'); resContainer.innerHTML = ''; if (!q) { resContainer.classList.add('hidden'); return; } const results = [ ...inventory.filter(i => i.proteinName && (i.proteinName.toLowerCase().includes(q) || i.notes.toLowerCase().includes(q))).map(i => ({ type: 'protein', ...i })), ...glycerolInventory.filter(g => g.gkdId.toLowerCase().includes(q) || g.construct.toLowerCase().includes(q) || g.notes.toLowerCase().includes(q)).map(g => ({ type: 'glycerol', ...g })) ].slice(0, 15); if (results.length === 0) { resContainer.innerHTML = `<div class="p-4 text-sm text-slate-500">No matching items found.</div>`; } else { results.forEach(res => { if (res.type === 'protein') { resContainer.innerHTML += `<div onclick="goToProteinSearch('${res.tray}', '${res.boxNum}', '${res.pillboxNum}', '${res.entryNum}')" class="p-3 hover:bg-cyan-50 border-b border-slate-100 cursor-pointer flex items-center justify-between"><div><div class="font-bold text-cyan-900">${res.proteinName}</div><div class="text-xs text-slate-500 mt-1">Tray ${res.tray} &rarr; Box ${res.boxNum} &rarr; Pillbox ${res.pillboxNum} &rarr; Slot ${res.entryNum}</div></div><div class="w-4 h-4 rounded shadow-sm" style="background-color: ${res.color}"></div></div>`; } else { const mapKey = Object.keys(glycMap).find(k => glycMap[k] === res.boxNum); const locStr = mapKey ? `Tray ${mapKey.split('-')[0]} &rarr; Box ${mapKey.split('-')[1]} (Glycerol) &rarr; Slot ${res.slotNum}` : `Unplaced Glycerol Box ${res.boxNum} &rarr; Slot ${res.slotNum}`; resContainer.innerHTML += `<div onclick="goToGlycerolSearch('${mapKey}', '${res.boxNum}', '${res.slotNum}')" class="p-3 hover:bg-blue-50 border-b border-slate-100 cursor-pointer flex items-center justify-between"><div><div class="font-bold text-blue-900">${res.gkdId} - ${res.construct}</div><div class="text-xs text-slate-500 mt-1">${locStr}</div></div><div class="w-4 h-4 rounded shadow-sm border border-slate-300" style="background-color: ${res.color}"></div></div>`; } }); } resContainer.classList.remove('hidden'); });
+    
+    document.addEventListener('click', (e) => { if (!e.target.closest('.relative.w-64')) { const sr = document.getElementById('search-results'); if(sr) sr.classList.add('hidden'); } });
+    
+    async function deleteGlycerol(slotNum) { if(!confirm(`Delete Glycerol Stock in Slot ${slotNum}?`)) return; try { await fetch(GAS_WEB_APP_URL, { method: 'POST', body: JSON.stringify({ action: 'deleteGlycerol', boxNum: current.glycBoxId, slotNum: slotNum }) }); glycerolInventory = glycerolInventory.filter(i => !(i.boxNum === String(current.glycBoxId) && i.slotNum === String(slotNum))); viewGlycerolBox(current.glycBoxId, current.tray, current.boxNum); } catch (err) { alert('Failed.'); } }
+    async function harvestVirus(id) { if(!confirm("Mark this virus as harvested/completed?")) return; try { await fetch(GAS_WEB_APP_URL, { method: 'POST', body: JSON.stringify({ action: 'harvestVirus', id: id }) }); viruses = viruses.filter(v => v.id !== id); renderBio(); } catch(e) { alert('Failed to harvest virus.'); } }
+
+    function goToProteinSearch(tray, box, pNum, eNum) { switchTab('freezer'); viewBox(tray, box); setTimeout(() => { const el = document.getElementById(`entry-${tray}-${box}-${pNum}-${eNum}`); if (el) { el.classList.add('bg-yellow-100', 'ring-2'); setTimeout(() => el.classList.remove('bg-yellow-100', 'ring-2'), 3000); } }, 100); }
+    function goToGlycerolSearch(mapKey, glycBoxId, slotNum) { switchTab('freezer'); if (!mapKey || mapKey === 'undefined') { alert("This Glycerol Box has not been placed in a Tray yet."); return; } viewGlycerolBox(glycBoxId, mapKey.split('-')[0], mapKey.split('-')[1]); setTimeout(() => { const el = document.getElementById(`glyc-slot-${glycBoxId}-${slotNum}`); if (el) { el.classList.add('bg-yellow-100', 'ring-2'); el.scrollIntoView({ behavior: 'smooth', block: 'center' }); setTimeout(() => el.classList.remove('bg-yellow-100', 'ring-2'), 3000); } }, 100); }
 
     init();
   </script>
