@@ -24,7 +24,7 @@
     <div class="flex space-x-2 bg-cyan-900 p-1 rounded-lg">
       <button onclick="switchTab('freezer')" id="tab-freezer" class="px-4 py-2 rounded font-bold text-sm bg-cyan-700 text-white transition-colors">❄️ Freezer Grid</button>
       <button onclick="switchTab('global')" id="tab-global" class="px-4 py-2 rounded font-bold text-sm text-cyan-200 hover:bg-cyan-800 transition-colors">📋 Global Inventory</button>
-      <button onclick="switchTab('bio')" id="tab-bio" class="px-4 py-2 rounded font-bold text-sm text-cyan-200 hover:bg-cyan-800 transition-colors">🦠 Cell & Virus</button>
+      <button onclick="switchTab('bio')" id="tab-bio" class="px-4 py-2 rounded font-bold text-sm text-cyan-200 hover:bg-cyan-800 transition-colors">🦠 Cell & Virus Tracker</button>
       <button onclick="switchTab('ordering')" id="tab-ordering" class="px-4 py-2 rounded font-bold text-sm text-cyan-200 hover:bg-cyan-800 transition-colors">📦 Ordering</button>
     </div>
     <div class="flex items-center space-x-4">
@@ -77,7 +77,7 @@
       </div>
     </div>
 
-    <!-- TAB 2: GLOBAL INVENTORY DIRECTORY -->
+    <!-- TAB 2: GLOBAL INVENTORY -->
     <div id="view-global" class="hidden bg-white p-6 rounded-xl shadow-sm border border-slate-200">
       <div class="flex justify-between items-end mb-4 border-b border-slate-100 pb-4">
         <div>
@@ -123,7 +123,6 @@
     <!-- TAB 4: ORDERING SYSTEM -->
     <div id="view-ordering" class="hidden space-y-6">
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        
         <!-- Order Requests Panel (Left 1/3) -->
         <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 lg:col-span-1 flex flex-col h-[700px]">
           <div class="flex justify-between items-center mb-4 border-b border-slate-100 pb-4">
@@ -149,10 +148,8 @@
             </table>
           </div>
         </div>
-
       </div>
     </div>
-
   </main>
 
   <!-- ========================================================================================= -->
@@ -160,13 +157,11 @@
   <!-- ========================================================================================= -->
 
   <!-- TEAM SETTINGS MODAL -->
-  <div id="settings-modal" class="hidden fixed inset-0 bg-slate-900 bg-opacity-60 flex items-center justify-center p-4 z-50"><div class="bg-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden"><div class="bg-cyan-950 p-4 text-white flex justify-between items-center"><h2 class="text-lg font-bold">Team Members & Colors</h2><button onclick="closeModal('settings-modal')" class="text-cyan-200 hover:text-white text-2xl font-bold">&times;</button></div><div class="p-6"><form id="form-add-user" class="flex gap-3 mb-6"><input type="text" id="input-new-user" placeholder="Name" required class="flex-grow border border-slate-300 rounded p-2 focus:ring-2 focus:ring-cyan-500"><input type="color" id="input-new-color" value="#06b6d4" class="w-12 h-10 border border-slate-300 rounded cursor-pointer"><button type="submit" id="btn-add-user" class="bg-cyan-700 hover:bg-cyan-800 text-white px-4 rounded">Add</button></form><div id="team-list" class="space-y-2 max-h-48 overflow-y-auto"></div></div></div></div>
+  <div id="settings-modal" class="hidden fixed inset-0 bg-slate-900 bg-opacity-60 flex items-center justify-center p-4 z-50"><div class="bg-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden"><div class="bg-cyan-950 p-4 text-white flex justify-between items-center"><h2 class="text-lg font-bold">Team Members & Colors</h2><button onclick="closeModal('settings-modal')" class="text-cyan-200 hover:text-white text-2xl font-bold">&times;</button></div><div class="p-6"><form id="form-add-user" class="flex gap-3 mb-6"><input type="text" id="input-new-user" placeholder="Name" required class="flex-grow border border-slate-300 rounded p-2 focus:ring-2 focus:ring-cyan-500"><input type="color" id="input-new-color" value="#06b6d4" class="w-12 h-10 border border-slate-300 rounded cursor-pointer"><button type="submit" id="btn-add-user" class="bg-cyan-700 text-white px-4 rounded">Add</button></form><div id="team-list" class="space-y-2 max-h-48 overflow-y-auto"></div></div></div></div>
 
   <!-- RACK ACTION MODAL -->
-  <div id="rack-modal" class="hidden fixed inset-0 bg-slate-900 bg-opacity-60 flex items-center justify-center p-4 z-40"><div class="bg-white rounded-xl shadow-2xl w-full max-w-sm overflow-hidden"><div class="bg-cyan-950 p-4 text-white flex justify-between items-center"><h2 class="text-lg font-bold">Tray <span id="rack-modal-title" class="text-cyan-300"></span></h2><button onclick="closeModal('rack-modal')" class="text-cyan-200 hover:text-white text-2xl font-bold">&times;</button></div><div class="p-6"><div class="mb-6 bg-slate-50 p-3 rounded-lg border border-slate-200"><label class="text-xs font-bold text-slate-500 uppercase">Tray Owner</label><select id="select-tray-owner" onchange="assignTrayOwner(this.value)" class="w-full mt-1 p-2 rounded border border-slate-300"></select></div><div id="box-buttons-container" class="space-y-3"></div></div></div></div>
-  
-  <!-- RENAME BOX MODAL -->
-  <div id="rename-box-modal" class="hidden fixed inset-0 bg-slate-900 bg-opacity-60 flex items-center justify-center p-4 z-50"><div class="bg-white rounded-xl shadow-2xl w-full max-w-sm p-6 border-t-4 border-cyan-600"><h2 class="text-lg font-bold mb-4">Rename <span id="rename-box-title" class="text-cyan-700"></span></h2><input type="text" id="input-new-box-name" placeholder="Name" class="w-full border border-slate-300 rounded p-2 mb-4"><div class="flex justify-end space-x-3"><button onclick="closeModal('rename-box-modal')" class="px-4 py-2 bg-slate-100 rounded">Cancel</button><button onclick="submitRenameBox()" id="btn-rename-box" class="px-4 py-2 bg-cyan-700 text-white rounded shadow">Save</button></div></div></div>
+  <div id="rack-modal" class="hidden fixed inset-0 bg-slate-900 bg-opacity-60 flex items-center justify-center p-4 z-40"><div class="bg-white rounded-xl shadow-2xl w-full max-w-sm overflow-hidden"><div class="bg-cyan-950 p-4 text-white flex justify-between items-center"><h2 class="text-lg font-bold">Tray <span id="rack-modal-title" class="text-cyan-300"></span></h2><button onclick="closeModal('rack-modal')" class="text-cyan-200 text-2xl font-bold">&times;</button></div><div class="p-6"><div class="mb-6 bg-slate-50 p-3 rounded-lg border border-slate-200"><label class="text-xs font-bold text-slate-500 uppercase">Tray Owner</label><select id="select-tray-owner" onchange="assignTrayOwner(this.value)" class="w-full mt-1 p-2 rounded border border-slate-300"></select></div><div id="box-buttons-container" class="space-y-3"></div></div></div></div>
+  <div id="rename-box-modal" class="hidden fixed inset-0 bg-slate-900 bg-opacity-60 flex items-center justify-center p-4 z-50"><div class="bg-white rounded-xl shadow-2xl w-full max-w-sm p-6 border-t-4 border-cyan-600"><h2 class="text-lg font-bold mb-4">Rename <span id="rename-box-title" class="text-cyan-700"></span></h2><input type="text" id="input-new-box-name" placeholder="Name" class="w-full border border-slate-300 rounded p-2 mb-4"><div class="flex justify-end space-x-3"><button onclick="closeModal('rename-box-modal')" class="px-4 py-2 bg-slate-100 rounded">Cancel</button><button type="submit" id="btn-rename-box" class="px-4 py-2 bg-cyan-700 text-white rounded shadow">Save</button></div></div></div>
 
   <!-- CELL CULTURE MODAL -->
   <div id="cell-modal" class="hidden fixed inset-0 bg-slate-900 bg-opacity-60 flex items-center justify-center p-4 z-50"><div class="bg-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden"><div class="bg-indigo-700 p-4 text-white"><h2 class="text-lg font-bold" id="cell-modal-title">New Cell Culture</h2></div><form id="form-cell" class="p-6 space-y-4"><input type="hidden" id="input-cell-id"><div class="grid grid-cols-2 gap-4"><div><label class="block text-sm font-bold text-slate-700 mb-1">Cell Type</label><select id="input-cell-type" onchange="autoFillDoubling()" required class="w-full border border-slate-300 rounded p-2 bg-white"><option value="">-- Select --</option><option value="Sf9">Sf9 (Insect)</option><option value="High Five">High Five (Insect)</option><option value="Custom">Custom...</option></select></div><div><label class="block text-sm font-bold text-slate-700 mb-1">Doubling (hrs)</label><input type="text" id="input-cell-doubling" placeholder="24 or 24-30" required class="w-full border border-slate-300 rounded p-2"></div></div><div class="grid grid-cols-2 gap-4"><div><label class="block text-sm font-bold text-slate-700 mb-1">Owner</label><select id="input-cell-owner" required class="w-full border border-slate-300 rounded p-2 bg-white"></select></div><div><label class="block text-sm font-bold text-slate-700 mb-1">Passage #</label><input type="number" id="input-cell-passage" value="0" required class="w-full border border-slate-300 rounded p-2"></div></div><div class="grid grid-cols-3 gap-4"><div><label class="block text-sm font-bold text-slate-700 mb-1">Density (e6)</label><input type="number" step="0.01" id="input-cell-density" required class="w-full border border-slate-300 rounded p-2"></div><div><label class="block text-sm font-bold text-slate-700 mb-1">Vol (mL)</label><input type="number" step="0.1" id="input-cell-vol" required class="w-full border border-slate-300 rounded p-2"></div><div><label class="block text-sm font-bold text-slate-700 mb-1">Flasks</label><input type="number" id="input-cell-flasks" value="1" required class="w-full border border-slate-300 rounded p-2"></div></div><div class="flex justify-end space-x-3 mt-6"><button type="button" onclick="closeModal('cell-modal')" class="px-4 py-2 bg-slate-100 rounded">Cancel</button><button type="submit" id="btn-save-cell" class="px-4 py-2 bg-indigo-700 text-white rounded">Save Culture</button></div></form></div></div>
@@ -212,7 +207,8 @@
     const GAS_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbxaLydtVy68ZjSykmAzstp03ijU143eDker01efasPw0OjJvb_3nfqjHSuPsFnFeU0BfQ/exec';
     // =========================================================
 
-    let inventory = []; let glycerolInventory = []; let team = []; let trayOwners = {}; let cellCultures = []; let viruses = []; let orders = []; let orderRequests = [];
+    let inventory = []; let glycerolInventory = []; let team = []; let trayOwners = {}; 
+    let cellCultures = []; let viruses = []; let orders = []; let orderRequests = [];
     
     let glycMap = { 
       'B13-1': '1', 'B13-2': '2', 'B13-3': '3', 'B13-4': '4', 
@@ -326,7 +322,6 @@
       const reqContainer = document.getElementById('requests-container');
       let reqHtml = '';
       
-      // Filter out Denied/Hold requests older than 7 days
       let activeRequests = orderRequests.filter(req => {
          if (req.status === 'Denied' || req.status === 'Hold') {
             let daysElapsed = (Date.now() - new Date(req.timestamp).getTime()) / (1000 * 3600 * 24);
@@ -374,7 +369,6 @@
       }
       reqContainer.innerHTML = reqHtml;
 
-      // Render Orders Log
       const ordTbody = document.getElementById('orders-tbody');
       let ordHtml = '';
       if(orders.length === 0) {
@@ -417,7 +411,6 @@
       }
       openModal('comment-modal');
       
-      // Auto scroll to bottom
       setTimeout(() => { listContainer.scrollTop = listContainer.scrollHeight; }, 50);
     }
 
@@ -593,8 +586,8 @@
     safeAddListener('form-add-protein', 'submit', async (e) => { e.preventDefault(); const btn = document.getElementById('btn-add-protein'); btn.innerText = "Saving..."; btn.disabled = true; const combinedVal = document.getElementById('input-prot-owner').value; const selectedColor = combinedVal ? combinedVal.split('|')[0] : '#0f172a'; const payload = { action: 'saveProtein', tray: current.tray, boxNum: current.boxNum, boxName: current.boxName, pillboxNum: current.pillboxNum, pillboxName: current.pillboxName, pillboxDate: current.pillboxDate, entryNum: current.entryNum, proteinName: document.getElementById('input-prot-name').value, color: selectedColor, concentration: document.getElementById('input-prot-conc').value, origin: document.getElementById('input-prot-origin').value, notes: document.getElementById('input-prot-notes').value, date: document.getElementById('input-prot-date').value }; localStorage.setItem('labOwnerColor', selectedColor); try { await fetch(GAS_WEB_APP_URL, { method: 'POST', body: JSON.stringify(payload) }); inventory.push(payload); closeModal('add-protein-modal'); document.getElementById('form-add-protein').reset(); viewBox(current.tray, current.boxNum); } catch (err) { alert('Failed.'); } finally { btn.innerText = "Save"; btn.disabled = false; } });
     safeAddListener('form-add-glycerol', 'submit', async (e) => { e.preventDefault(); const btn = document.getElementById('btn-add-glycerol'); btn.innerText = "Saving..."; btn.disabled = true; const combinedVal = document.getElementById('input-glyc-owner').value; const selectedColor = combinedVal ? combinedVal.split('|')[0] : '#1d4ed8'; const selectedPerson = combinedVal ? combinedVal.split('|')[1] : 'Unknown'; const payload = { action: 'saveGlycerol', boxNum: current.glycBoxId, slotNum: current.glycSlotNum, gkdId: document.getElementById('input-glyc-gkd').value, construct: document.getElementById('input-glyc-construct').value, cellStrain: document.getElementById('input-glyc-strain').value, person: selectedPerson, color: selectedColor, origin: document.getElementById('input-glyc-origin').value, notes: document.getElementById('input-glyc-notes').value, date: document.getElementById('input-glyc-date').value }; try { await fetch(GAS_WEB_APP_URL, { method: 'POST', body: JSON.stringify(payload) }); const existingIdx = glycerolInventory.findIndex(i => i.boxNum === payload.boxNum && i.slotNum === payload.slotNum); if (existingIdx >= 0) glycerolInventory[existingIdx] = payload; else glycerolInventory.push(payload); closeModal('add-glycerol-modal'); viewGlycerolBox(current.glycBoxId, current.tray, current.boxNum); } catch (err) { alert('Failed.'); } finally { btn.innerText = "Save"; btn.disabled = false; } });
     safeAddListener('form-cell', 'submit', async (e) => { e.preventDefault(); const btn = document.getElementById('btn-save-cell'); btn.innerText = "Saving..."; btn.disabled = true; const combinedVal = document.getElementById('input-cell-owner').value; const col = combinedVal ? combinedVal.split('|')[0] : '#4f46e5'; const per = combinedVal ? combinedVal.split('|')[1] : 'Unknown'; const den = parseFloat(document.getElementById('input-cell-density').value); const vol = parseFloat(document.getElementById('input-cell-vol').value); const fls = parseInt(document.getElementById('input-cell-flasks').value); const payload = { action: 'saveCulture', id: document.getElementById('input-cell-id').value, cellType: document.getElementById('input-cell-type').value, doublingTime: document.getElementById('input-cell-doubling').value, passageNum: document.getElementById('input-cell-passage').value, density: den, volume: vol, flasks: fls, totalCells: den * vol * fls, person: per, color: col, lastSplitTime: new Date().toISOString() }; try { await fetch(GAS_WEB_APP_URL, { method: 'POST', body: JSON.stringify(payload) }); await fetchInventoryData(); closeModal('cell-modal'); renderBio(); } catch (err) { alert('Failed to save cell culture.'); } finally { btn.innerText = "Save Culture"; btn.disabled = false; } });
-    
-    // Form handlers for new Ordering functionality
+
+    // --- ORDERING EVENT LISTENERS ---
     safeAddListener('form-add-order', 'submit', async (e) => {
       e.preventDefault(); const btn = document.getElementById('btn-save-order'); btn.innerText = "Saving..."; btn.disabled = true;
       const payload = {
@@ -636,8 +629,6 @@
       } catch (err) { alert('Failed to post comment.'); } finally { btn.innerText = "Post"; btn.disabled = false; }
     });
 
-    function compressImage(file, callback) { const reader = new FileReader(); reader.onload = (e) => { const img = new Image(); img.onload = () => { const canvas = document.createElement('canvas'); const maxW = 400; const scale = Math.min(maxW / img.width, 1); canvas.width = img.width * scale; canvas.height = img.height * scale; const ctx = canvas.getContext('2d'); ctx.drawImage(img, 0, 0, canvas.width, canvas.height); callback(canvas.toDataURL('image/jpeg', 0.6)); }; img.src = e.target.result; }; reader.readAsDataURL(file); }
-    
     safeAddListener('form-virus', 'submit', async (e) => { e.preventDefault(); const btn = document.getElementById('btn-save-virus'); btn.innerText = "Saving..."; btn.disabled = true; const combinedVal = document.getElementById('input-virus-owner').value; const col = combinedVal ? combinedVal.split('|')[0] : '#10b981'; const per = combinedVal ? combinedVal.split('|')[1] : 'Unknown'; const fileInput = document.getElementById('input-virus-file'); const sendPayload = async (imgStr) => { const payload = { action: 'saveVirus', passage: document.getElementById('input-virus-passage').value, virusName: document.getElementById('input-virus-name').value, startTime: document.getElementById('input-virus-time').value, person: per, color: col, imageStr: imgStr }; try { await fetch(GAS_WEB_APP_URL, { method: 'POST', body: JSON.stringify(payload) }); await fetchInventoryData(); closeModal('virus-modal'); renderBio(); } catch (err) { alert('Failed to save virus.'); } finally { btn.innerText = "Save Virus"; btn.disabled = false; } }; if (fileInput.files && fileInput.files[0]) { compressImage(fileInput.files[0], sendPayload); } else { sendPayload(""); } });
     safeAddListener('global-search', 'input', (e) => { const term = e.target.value.toLowerCase(); const rows = document.getElementById('global-table-body').getElementsByTagName('tr'); for(let r of rows) { r.style.display = r.innerText.toLowerCase().includes(term) ? '' : 'none'; } });
     safeAddListener('search-input', 'input', (e) => { const q = e.target.value.toLowerCase().trim(); const resContainer = document.getElementById('search-results'); resContainer.innerHTML = ''; if (!q) { resContainer.classList.add('hidden'); return; } const results = [ ...inventory.filter(i => i.proteinName && (i.proteinName.toLowerCase().includes(q) || i.notes.toLowerCase().includes(q))).map(i => ({ type: 'protein', ...i })), ...glycerolInventory.filter(g => g.gkdId.toLowerCase().includes(q) || g.construct.toLowerCase().includes(q) || g.notes.toLowerCase().includes(q)).map(g => ({ type: 'glycerol', ...g })) ].slice(0, 15); if (results.length === 0) { resContainer.innerHTML = `<div class="p-4 text-sm text-slate-500">No matching items found.</div>`; } else { results.forEach(res => { if (res.type === 'protein') { resContainer.innerHTML += `<div onclick="goToProteinSearch('${res.tray}', '${res.boxNum}', '${res.pillboxNum}', '${res.entryNum}')" class="p-3 hover:bg-cyan-50 border-b border-slate-100 cursor-pointer flex items-center justify-between"><div><div class="font-bold text-cyan-900">${res.proteinName}</div><div class="text-xs text-slate-500 mt-1">Tray ${res.tray} &rarr; Box ${res.boxNum} &rarr; Pillbox ${res.pillboxNum} &rarr; Slot ${res.entryNum}</div></div><div class="w-4 h-4 rounded shadow-sm" style="background-color: ${res.color}"></div></div>`; } else { const mapKey = Object.keys(glycMap).find(k => glycMap[k] === res.boxNum); const locStr = mapKey ? `Tray ${mapKey.split('-')[0]} &rarr; Box ${mapKey.split('-')[1]} (Glycerol) &rarr; Slot ${res.slotNum}` : `Unplaced Glycerol Box ${res.boxNum} &rarr; Slot ${res.slotNum}`; resContainer.innerHTML += `<div onclick="goToGlycerolSearch('${mapKey}', '${res.boxNum}', '${res.slotNum}')" class="p-3 hover:bg-blue-50 border-b border-slate-100 cursor-pointer flex items-center justify-between"><div><div class="font-bold text-blue-900">${res.gkdId} - ${res.construct}</div><div class="text-xs text-slate-500 mt-1">${locStr}</div></div><div class="w-4 h-4 rounded shadow-sm border border-slate-300" style="background-color: ${res.color}"></div></div>`; } }); } resContainer.classList.remove('hidden'); });
@@ -645,30 +636,8 @@
     document.addEventListener('click', (e) => { if (!e.target.closest('.relative.w-64')) { const sr = document.getElementById('search-results'); if(sr) sr.classList.add('hidden'); } });
     
     // --- MODAL UTILITIES ---
-    function openSettingsModal() { 
-      const list = document.getElementById('team-list'); 
-      list.innerHTML = team.length === 0 ? '<div class="text-sm text-slate-400">No team members added yet.</div>' : ''; 
-      team.forEach(u => { list.innerHTML += `<div class="flex items-center space-x-3 p-2 bg-slate-50 rounded border"><div class="w-4 h-4 rounded-full" style="background-color:${u.color}"></div><span class="font-bold text-slate-700">${u.name}</span></div>`; }); 
-      openModal('settings-modal'); 
-    }
-    
-    function populateOwnerDropdowns(trayId = null) { 
-      const selects = ['input-prot-owner', 'input-glyc-owner', 'select-tray-owner', 'input-cell-owner', 'input-virus-owner', 'input-comment-owner'];
-      let options = `<option value="">-- Select Member --</option>`; 
-      team.forEach(u => options += `<option value="${u.color}|${u.name}">${u.name}</option>`); 
-      
-      selects.forEach(id => {
-        const el = document.getElementById(id);
-        if(el) el.innerHTML = options;
-      });
-      
-      const tSelect = document.getElementById('select-tray-owner');
-      if (trayId && trayOwners[trayId] && tSelect) { 
-        const matchingColor = trayOwners[trayId]; 
-        Array.from(tSelect.options).forEach(opt => { if(opt.value.startsWith(matchingColor)) tSelect.value = opt.value; }); 
-      } 
-    }
-
+    function openSettingsModal() { const list = document.getElementById('team-list'); list.innerHTML = team.length === 0 ? '<div class="text-sm text-slate-400">No team members added yet.</div>' : ''; team.forEach(u => { list.innerHTML += `<div class="flex items-center space-x-3 p-2 bg-slate-50 rounded border"><div class="w-4 h-4 rounded-full" style="background-color:${u.color}"></div><span class="font-bold text-slate-700">${u.name}</span></div>`; }); openModal('settings-modal'); }
+    function populateOwnerDropdowns(trayId = null) { const selects = ['input-prot-owner', 'input-glyc-owner', 'select-tray-owner', 'input-cell-owner', 'input-virus-owner', 'input-comment-owner']; let options = `<option value="">-- Select Member --</option>`; team.forEach(u => options += `<option value="${u.color}|${u.name}">${u.name}</option>`); selects.forEach(id => { const el = document.getElementById(id); if(el) el.innerHTML = options; }); const tSelect = document.getElementById('select-tray-owner'); if (trayId && trayOwners[trayId] && tSelect) { const matchingColor = trayOwners[trayId]; Array.from(tSelect.options).forEach(opt => { if(opt.value.startsWith(matchingColor)) tSelect.value = opt.value; }); } }
     async function assignTrayOwner(combinedValue) { const colorValue = combinedValue.split('|')[0]; try { trayOwners[current.tray] = colorValue; await fetch(GAS_WEB_APP_URL, { method: 'POST', body: JSON.stringify({ action: 'saveSetting', settingType: 'Tray', settingKey: current.tray, settingValue: colorValue }) }); renderFreezer(); } catch(e) { alert('Failed to assign tray owner'); } }
     function getBoxName(tray, boxNum) { const item = inventory.find(i => i.tray === tray && i.boxNum === String(boxNum) && i.boxName !== ""); return item ? item.boxName : null; }
 
@@ -699,8 +668,6 @@
     }
 
     function viewFreezer() { renderFreezer(); }
-    function openCreatePillboxModal(pNum) { current.pillboxNum = pNum; document.getElementById('create-pillbox-title').innerText = `#${pNum}`; document.getElementById('input-pillbox-date').valueAsDate = new Date(); openModal('create-pillbox-modal'); }
-    function openAddProteinModal(pNum, pName, pDate, eNum) { current.pillboxNum = pNum; current.pillboxName = pName; current.pillboxDate = pDate; current.entryNum = eNum; document.getElementById('add-protein-title').innerText = `Slot ${eNum}`; document.getElementById('input-prot-date').valueAsDate = new Date(); populateOwnerDropdowns(); const savedColor = localStorage.getItem('labOwnerColor'); if (savedColor) { const sel = document.getElementById('input-prot-owner'); Array.from(sel.options).forEach(opt => { if(opt.value.startsWith(savedColor)) sel.value = opt.value; }); } openModal('add-protein-modal'); }
     
     function viewGlycerolBox(glycBoxId, trayId, boxNum) {
       closeModal('rack-modal'); current.glycBoxId = glycBoxId; current.tray = trayId; current.boxNum = boxNum; showScreen('screen-glyc-detail'); document.getElementById('glyc-box-title').innerText = `Tray ${trayId} > Box ${boxNum} (Glycerol Box ${glycBoxId})`;
@@ -712,17 +679,13 @@
       } html += `</tbody></table></div>`; document.getElementById('glyc-list-container').innerHTML = html;
     }
 
+    function openCreatePillboxModal(pNum) { current.pillboxNum = pNum; document.getElementById('create-pillbox-title').innerText = `#${pNum}`; document.getElementById('input-pillbox-date').valueAsDate = new Date(); openModal('create-pillbox-modal'); }
+    function openAddProteinModal(pNum, pName, pDate, eNum) { current.pillboxNum = pNum; current.pillboxName = pName; current.pillboxDate = pDate; current.entryNum = eNum; document.getElementById('add-protein-title').innerText = `Slot ${eNum}`; document.getElementById('input-prot-date').valueAsDate = new Date(); populateOwnerDropdowns(); const savedColor = localStorage.getItem('labOwnerColor'); if (savedColor) { const sel = document.getElementById('input-prot-owner'); Array.from(sel.options).forEach(opt => { if(opt.value.startsWith(savedColor)) sel.value = opt.value; }); } openModal('add-protein-modal'); }
     function openAddGlycerolModal(slotNum) { current.glycSlotNum = slotNum; document.getElementById('form-add-glycerol').reset(); document.getElementById('input-glyc-date').valueAsDate = new Date(); populateOwnerDropdowns(); const savedColor = localStorage.getItem('labOwnerColor'); if (savedColor) { const sel = document.getElementById('input-glyc-owner'); Array.from(sel.options).forEach(opt => { if(opt.value.startsWith(savedColor)) sel.value = opt.value; }); } openModal('add-glycerol-modal'); }
     function openEditGlycerolModal(slotNum) { current.glycSlotNum = slotNum; const entry = glycerolInventory.find(i => i.boxNum === String(current.glycBoxId) && i.slotNum === String(slotNum)); if (!entry) return; populateOwnerDropdowns(); document.getElementById('input-glyc-gkd').value = entry.gkdId; document.getElementById('input-glyc-construct').value = entry.construct; document.getElementById('input-glyc-strain').value = entry.cellStrain; document.getElementById('input-glyc-origin').value = entry.origin; document.getElementById('input-glyc-notes').value = entry.notes; document.getElementById('input-glyc-date').value = entry.date; const sel = document.getElementById('input-glyc-owner'); Array.from(sel.options).forEach(opt => { if(opt.value.startsWith(entry.color)) sel.value = opt.value; }); openModal('add-glycerol-modal'); }
-    async function deleteGlycerol(slotNum) { if(!confirm(`Delete Glycerol Stock in Slot ${slotNum}?`)) return; try { await fetch(GAS_WEB_APP_URL, { method: 'POST', body: JSON.stringify({ action: 'deleteGlycerol', boxNum: current.glycBoxId, slotNum: slotNum }) }); glycerolInventory = glycerolInventory.filter(i => !(i.boxNum === String(current.glycBoxId) && i.slotNum === String(slotNum))); viewGlycerolBox(current.glycBoxId, current.tray, current.boxNum); } catch (err) { alert('Failed.'); } }
-    async function harvestVirus(id) { if(!confirm("Mark this virus as harvested/completed?")) return; try { await fetch(GAS_WEB_APP_URL, { method: 'POST', body: JSON.stringify({ action: 'harvestVirus', id: id }) }); viruses = viruses.filter(v => v.id !== id); renderBio(); } catch(e) { alert('Failed to harvest virus.'); } }
-
+    
     function goToProteinSearch(tray, box, pNum, eNum) { switchTab('freezer'); viewBox(tray, box); setTimeout(() => { const el = document.getElementById(`entry-${tray}-${box}-${pNum}-${eNum}`); if (el) { el.classList.add('bg-yellow-100', 'ring-2'); setTimeout(() => el.classList.remove('bg-yellow-100', 'ring-2'), 3000); } }, 100); }
     function goToGlycerolSearch(mapKey, glycBoxId, slotNum) { switchTab('freezer'); if (!mapKey || mapKey === 'undefined') { alert("This Glycerol Box has not been placed in a Tray yet."); return; } viewGlycerolBox(glycBoxId, mapKey.split('-')[0], mapKey.split('-')[1]); setTimeout(() => { const el = document.getElementById(`glyc-slot-${glycBoxId}-${slotNum}`); if (el) { el.classList.add('bg-yellow-100', 'ring-2'); el.scrollIntoView({ behavior: 'smooth', block: 'center' }); setTimeout(() => el.classList.remove('bg-yellow-100', 'ring-2'), 3000); } }, 100); }
-
-    function autoFillDoubling() { const type = document.getElementById('input-cell-type').value; const dtInput = document.getElementById('input-cell-doubling'); if (type === 'Sf9') dtInput.value = '24-30'; else if (type === 'High Five') dtInput.value = '18'; else dtInput.value = ''; }
-    function openCellModal(existingId = null) { document.getElementById('form-cell').reset(); populateOwnerDropdowns(); if(existingId) { const c = cellCultures.find(x => x.id === existingId); document.getElementById('cell-modal-title').innerText = "Split Culture"; document.getElementById('input-cell-id').value = c.id; const typeSelect = document.getElementById('input-cell-type'); if(Array.from(typeSelect.options).some(o => o.value === c.cellType)) { typeSelect.value = c.cellType; } else { typeSelect.value = 'Custom'; } document.getElementById('input-cell-doubling').value = c.doublingTime; document.getElementById('input-cell-passage').value = parseInt(c.passageNum) + 1; document.getElementById('input-cell-flasks').value = c.flasks; document.getElementById('input-cell-vol').value = c.volume; const ownerSel = document.getElementById('input-cell-owner'); Array.from(ownerSel.options).forEach(opt => { if(opt.value.startsWith(c.color)) ownerSel.value = opt.value; }); } else { document.getElementById('cell-modal-title').innerText = "New Cell Culture"; document.getElementById('input-cell-id').value = ""; } openModal('cell-modal'); }
-    function openVirusModal() { document.getElementById('form-virus').reset(); document.getElementById('input-virus-time').value = new Date().toISOString().slice(0, 16); populateOwnerDropdowns(); openModal('virus-modal'); }
 
     init();
   </script>
