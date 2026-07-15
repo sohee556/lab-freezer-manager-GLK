@@ -16,19 +16,19 @@
 </head>
 <body class="bg-slate-50 min-h-screen text-slate-800 font-sans">
 
-  <!-- NAVIGATION -->
-  <nav class="bg-cyan-950 shadow-lg border-b border-cyan-900 sticky top-0 z-30 px-6 py-3 flex flex-col md:flex-row justify-between items-center text-white gap-4">
-    <div>
-      <h1 class="text-2xl font-bold tracking-wide">Kleiger Lab LIMS</h1>
+  <!-- NAVIGATION (Redesigned to wrap cleanly on small screens) -->
+  <nav class="bg-cyan-950 shadow-lg border-b border-cyan-900 sticky top-0 z-30 px-6 py-3 flex flex-wrap justify-between items-center text-white gap-4">
+    <div><h1 class="text-2xl font-bold tracking-wide shrink-0">Kleiger Lab LIMS</h1></div>
+    
+    <div class="flex flex-wrap gap-2 bg-cyan-900 p-1 rounded-lg">
+      <button onclick="switchTab('freezer')" id="tab-freezer" class="px-3 md:px-4 py-2 rounded font-bold text-sm bg-cyan-700 text-white transition-colors">❄️ Freezer Grid</button>
+      <button onclick="switchTab('global')" id="tab-global" class="px-3 md:px-4 py-2 rounded font-bold text-sm text-cyan-200 hover:bg-cyan-800 transition-colors">📋 Global Inventory</button>
+      <button onclick="switchTab('bio')" id="tab-bio" class="px-3 md:px-4 py-2 rounded font-bold text-sm text-cyan-200 hover:bg-cyan-800 transition-colors">🦠 Cell & Virus</button>
+      <button onclick="switchTab('ordering')" id="tab-ordering" class="px-3 md:px-4 py-2 rounded font-bold text-sm text-cyan-200 hover:bg-cyan-800 transition-colors">📦 Ordering</button>
     </div>
-    <div class="flex space-x-2 bg-cyan-900 p-1 rounded-lg">
-      <button onclick="switchTab('freezer')" id="tab-freezer" class="px-4 py-2 rounded font-bold text-sm bg-cyan-700 text-white transition-colors">❄️ Freezer Grid</button>
-      <button onclick="switchTab('global')" id="tab-global" class="px-4 py-2 rounded font-bold text-sm text-cyan-200 hover:bg-cyan-800 transition-colors">📋 Global Inventory</button>
-      <button onclick="switchTab('bio')" id="tab-bio" class="px-4 py-2 rounded font-bold text-sm text-cyan-200 hover:bg-cyan-800 transition-colors">🦠 Cell & Virus Tracker</button>
-      <button onclick="switchTab('ordering')" id="tab-ordering" class="px-4 py-2 rounded font-bold text-sm text-cyan-200 hover:bg-cyan-800 transition-colors">📦 Ordering</button>
-    </div>
-    <div class="flex items-center space-x-4">
-      <div class="relative w-64">
+    
+    <div class="flex items-center space-x-4 w-full md:w-auto">
+      <div class="relative flex-grow md:w-64">
         <input type="search" id="search-input" placeholder="Search Proteins or GKDs..." class="w-full bg-cyan-900 border border-cyan-800 rounded-full py-2 px-4 text-white placeholder-cyan-500 focus:ring-2 focus:ring-cyan-400 focus:outline-none">
         <div id="search-results" class="hidden absolute top-full right-0 mt-2 w-96 bg-white border border-slate-200 shadow-xl rounded-lg max-h-80 overflow-y-auto z-50 text-slate-800"></div>
       </div>
@@ -38,7 +38,7 @@
     </div>
   </nav>
 
-  <main class="max-w-7xl mx-auto p-6 pb-20">
+  <main class="max-w-7xl mx-auto p-4 md:p-6 pb-20">
     <div id="loading" class="text-center text-cyan-700 font-bold text-lg my-10 animate-pulse">Syncing Kleiger Database...</div>
     <div id="error-state" class="hidden text-center text-red-600 font-semibold my-10 bg-red-50 p-4 rounded-lg"></div>
 
@@ -48,7 +48,7 @@
         <div class="bg-white p-8 rounded-xl shadow-sm border border-slate-200 mb-8">
           <div class="flex justify-between items-center mb-6">
             <h2 class="text-lg font-bold text-slate-700 uppercase tracking-widest">Master Grid (A-F)</h2>
-            <span class="text-xs font-bold text-amber-600 bg-amber-50 px-3 py-1 rounded border border-amber-200">💡 Drag a filled tray to an empty space to move it</span>
+            <span class="text-xs font-bold text-amber-600 bg-amber-50 px-3 py-1 rounded border border-amber-200">💡 Drag a filled tray to move it</span>
           </div>
           <div id="freezer-grid-container" class="max-w-3xl mx-auto"></div>
         </div>
@@ -123,6 +123,7 @@
     <!-- TAB 4: ORDERING SYSTEM -->
     <div id="view-ordering" class="hidden space-y-6">
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        
         <!-- Order Requests Panel (Left 1/3) -->
         <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 lg:col-span-1 flex flex-col h-[700px]">
           <div class="flex justify-between items-center mb-4 border-b border-slate-100 pb-4">
@@ -142,14 +143,16 @@
           <div class="overflow-x-auto overflow-y-auto flex-grow table-scroll border border-slate-100 rounded">
             <table class="w-full text-left text-sm whitespace-nowrap">
               <thead class="bg-slate-50 sticky top-0 z-10 border-b border-slate-200 text-slate-500">
-                <tr><th class="p-3">Item Name</th><th class="p-3">Mfr / Cat #</th><th class="p-3">Ordered</th><th class="p-3">Qty/Cost</th><th class="p-3">Tracking</th></tr>
+                <tr><th class="p-3">Item Name</th><th class="p-3">Mfr / Cat #</th><th class="p-3">Ordered</th><th class="p-3">Qty/Cost</th><th class="p-3">Tracking</th><th class="p-3 text-right">Status / Actions</th></tr>
               </thead>
               <tbody id="orders-tbody" class="divide-y divide-slate-100"></tbody>
             </table>
           </div>
         </div>
+
       </div>
     </div>
+
   </main>
 
   <!-- ========================================================================================= -->
@@ -173,8 +176,6 @@
   <!-- PROTEIN PILLBOX MODALS -->
   <div id="create-pillbox-modal" class="hidden fixed inset-0 bg-slate-900 bg-opacity-60 flex items-center justify-center p-4 z-50"><div class="bg-white rounded-xl shadow-2xl w-full max-w-sm overflow-hidden"><div class="bg-indigo-600 p-4 text-white"><h2 class="text-lg font-bold">Create Pillbox <span id="create-pillbox-title" class="text-indigo-200"></span></h2></div><form id="form-create-pillbox" class="p-6 space-y-4"><div><label class="block text-sm font-bold text-slate-700 mb-1">Pillbox Name</label><input type="text" id="input-pillbox-name" required class="w-full border border-slate-300 rounded p-2"></div><div><label class="block text-sm font-bold text-slate-700 mb-1">Date</label><input type="date" id="input-pillbox-date" required class="w-full border border-slate-300 rounded p-2"></div><div class="flex justify-end space-x-3"><button type="button" onclick="closeModal('create-pillbox-modal')" class="px-4 py-2 bg-slate-100 rounded">Cancel</button><button type="submit" id="btn-create-pillbox" class="px-4 py-2 bg-indigo-600 text-white rounded">Create</button></div></form></div></div>
   <div id="add-protein-modal" class="hidden fixed inset-0 bg-slate-900 bg-opacity-60 flex items-center justify-center p-4 z-50"><div class="bg-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden"><div class="bg-emerald-700 p-4 text-white"><h2 class="text-lg font-bold">Add Protein to <span id="add-protein-title" class="text-emerald-200"></span></h2></div><form id="form-add-protein" class="p-6 space-y-4"><div class="flex gap-4"><div class="flex-grow"><label class="block text-sm font-bold mb-1">Name</label><input type="text" id="input-prot-name" required class="w-full border border-slate-300 rounded p-2"></div><div class="w-32"><label class="block text-sm font-bold mb-1">Owner</label><select id="input-prot-owner" class="w-full border border-slate-300 rounded p-2 bg-white"></select></div></div><div class="grid grid-cols-2 gap-4"><div><label class="block text-sm font-bold mb-1">Conc.</label><input type="text" id="input-prot-conc" class="w-full border border-slate-300 rounded p-2"></div><div><label class="block text-sm font-bold mb-1">Origin</label><input type="text" id="input-prot-origin" required class="w-full border border-slate-300 rounded p-2"></div></div><div><label class="block text-sm font-bold mb-1">Notes</label><textarea id="input-prot-notes" rows="2" class="w-full border border-slate-300 rounded p-2"></textarea></div><div><label class="block text-sm font-bold mb-1">Date</label><input type="date" id="input-prot-date" required class="w-full border border-slate-300 rounded p-2"></div><div class="flex justify-end space-x-3"><button type="button" onclick="closeModal('add-protein-modal')" class="px-4 py-2 bg-slate-100 rounded">Cancel</button><button type="submit" id="btn-add-protein" class="px-4 py-2 bg-emerald-700 text-white rounded">Save</button></div></form></div></div>
-  
-  <!-- GLYCEROL MODAL -->
   <div id="add-glycerol-modal" class="hidden fixed inset-0 bg-slate-900 bg-opacity-60 flex items-center justify-center p-4 z-50"><div class="bg-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden"><div class="bg-blue-800 p-4 text-white"><h2 class="text-lg font-bold" id="add-glyc-header">Add Glycerol Stock</h2></div><form id="form-add-glycerol" class="p-6 space-y-4"><div class="grid grid-cols-2 gap-4"><div><label class="block text-sm font-bold mb-1">GKD ID</label><input type="text" id="input-glyc-gkd" required class="w-full border border-slate-300 rounded p-2"></div><div><label class="block text-sm font-bold mb-1">Owner</label><select id="input-glyc-owner" required class="w-full border border-slate-300 rounded p-2 bg-white"></select></div></div><div class="grid grid-cols-2 gap-4"><div><label class="block text-sm font-bold mb-1">Construct</label><input type="text" id="input-glyc-construct" required class="w-full border border-slate-300 rounded p-2"></div><div><label class="block text-sm font-bold mb-1">Cell Strain</label><input type="text" id="input-glyc-strain" required class="w-full border border-slate-300 rounded p-2"></div></div><div class="grid grid-cols-2 gap-4"><div><label class="block text-sm font-bold mb-1">Origin</label><input type="text" id="input-glyc-origin" class="w-full border border-slate-300 rounded p-2"></div><div><label class="block text-sm font-bold mb-1">Date</label><input type="date" id="input-glyc-date" required class="w-full border border-slate-300 rounded p-2"></div></div><div><label class="block text-sm font-bold mb-1">Notes / Res.</label><textarea id="input-glyc-notes" rows="2" class="w-full border border-slate-300 rounded p-2"></textarea></div><div class="flex justify-end space-x-3 mt-6"><button type="button" onclick="closeModal('add-glycerol-modal')" class="px-4 py-2 bg-slate-100 rounded">Cancel</button><button type="submit" id="btn-add-glycerol" class="px-4 py-2 bg-blue-800 text-white rounded">Save</button></div></form></div></div>
 
   <!-- ORDER REQUEST MODAL -->
@@ -193,6 +194,15 @@
     <div class="grid grid-cols-2 gap-4"><div><label class="block text-sm font-bold mb-1">Date Ordered</label><input type="date" id="input-ord-date" required class="w-full border border-slate-300 rounded p-2"></div><div><label class="block text-sm font-bold mb-1">Tracking # <span class="text-slate-400 font-normal">(Opt)</span></label><input type="text" id="input-ord-track" class="w-full border border-slate-300 rounded p-2"></div></div>
     <div class="grid grid-cols-2 gap-4"><div><label class="block text-sm font-bold mb-1">Quantity <span class="text-slate-400 font-normal">(Opt)</span></label><input type="text" id="input-ord-qty" class="w-full border border-slate-300 rounded p-2"></div><div><label class="block text-sm font-bold mb-1">Cost <span class="text-slate-400 font-normal">(Opt)</span></label><input type="text" id="input-ord-cost" class="w-full border border-slate-300 rounded p-2"></div></div>
     <div class="flex justify-end space-x-3 mt-6"><button type="button" onclick="closeModal('add-order-modal')" class="px-4 py-2 bg-slate-100 rounded">Cancel</button><button type="submit" id="btn-save-order" class="px-4 py-2 bg-emerald-700 text-white rounded">Log Order</button></div>
+  </form></div></div>
+
+  <!-- RECEIVE ITEM MODAL -->
+  <div id="receive-order-modal" class="hidden fixed inset-0 bg-slate-900 bg-opacity-60 flex items-center justify-center p-4 z-50"><div class="bg-white rounded-xl shadow-2xl w-full max-w-sm overflow-hidden"><div class="bg-indigo-700 p-4 text-white"><h2 class="text-lg font-bold">Mark Item Received</h2></div><form id="form-receive-order" class="p-6 space-y-4">
+    <input type="hidden" id="input-recv-id">
+    <div><label class="block text-sm font-bold mb-1">Received By</label><select id="input-recv-owner" required class="w-full border border-slate-300 rounded p-2 bg-white"></select></div>
+    <div><label class="block text-sm font-bold mb-1">Date Picked Up</label><input type="date" id="input-recv-date" required class="w-full border border-slate-300 rounded p-2"></div>
+    <div><label class="block text-sm font-bold mb-1">Storage Location</label><input type="text" id="input-recv-loc" placeholder="e.g. 4°C Fridge, Shelf 2" required class="w-full border border-slate-300 rounded p-2"></div>
+    <div class="flex justify-end space-x-3 mt-6"><button type="button" onclick="closeModal('receive-order-modal')" class="px-4 py-2 bg-slate-100 rounded">Cancel</button><button type="submit" id="btn-save-receive" class="px-4 py-2 bg-indigo-700 text-white rounded shadow">Save</button></div>
   </form></div></div>
 
   <!-- COMMENTS MODAL -->
@@ -230,15 +240,10 @@
         const text = await response.text();
         
         let result;
-        try {
-          result = JSON.parse(text);
-        } catch (e) {
-          throw new Error("Google blocked the connection. Check your Apps Script Deployment: 'Who has access' MUST be set to 'Anyone'.");
-        }
+        try { result = JSON.parse(text); } 
+        catch (e) { throw new Error("Google blocked the connection. Check your Apps Script Deployment: 'Who has access' MUST be set to 'Anyone'."); }
         
-        if (result.status !== 'success') {
-          throw new Error(result.message);
-        }
+        if (result.status !== 'success') throw new Error(result.message);
 
         team = []; trayOwners = {};
         
@@ -274,7 +279,13 @@
 
         orders = (result.orders || []).map(cols => {
           let oDate = cols[5]; if (oDate && String(oDate).includes('T')) oDate = String(oDate).split('T')[0];
-          return { id: String(cols[0]).trim(), name: String(cols[1]).trim(), mfr: String(cols[2]).trim(), cat: String(cols[3]).trim(), track: String(cols[4]).trim(), date: oDate, qty: String(cols[5]).trim(), cost: String(cols[6]).trim() };
+          let rDate = cols[9]; if (rDate && String(rDate).includes('T')) rDate = String(rDate).split('T')[0];
+          return { 
+            id: String(cols[0]).trim(), name: String(cols[1]).trim(), mfr: String(cols[2]).trim(), 
+            cat: String(cols[3]).trim(), track: String(cols[4]).trim(), date: oDate, 
+            qty: String(cols[5]).trim(), cost: String(cols[6]).trim(),
+            receiver: String(cols[8] || '').trim(), receivedDate: rDate || '', storageLoc: String(cols[10] || '').trim()
+          };
         });
 
         orderRequests = (result.requests || []).map(cols => ({
@@ -296,10 +307,10 @@
       document.getElementById('view-bio').classList.add('hidden');
       document.getElementById('view-ordering').classList.add('hidden');
       
-      document.getElementById('tab-freezer').className = "px-4 py-2 rounded font-bold text-sm text-cyan-200 hover:bg-cyan-800 transition-colors";
-      document.getElementById('tab-global').className = "px-4 py-2 rounded font-bold text-sm text-cyan-200 hover:bg-cyan-800 transition-colors";
-      document.getElementById('tab-bio').className = "px-4 py-2 rounded font-bold text-sm text-cyan-200 hover:bg-cyan-800 transition-colors";
-      document.getElementById('tab-ordering').className = "px-4 py-2 rounded font-bold text-sm text-cyan-200 hover:bg-cyan-800 transition-colors";
+      document.getElementById('tab-freezer').className = "px-3 md:px-4 py-2 rounded font-bold text-sm text-cyan-200 hover:bg-cyan-800 transition-colors";
+      document.getElementById('tab-global').className = "px-3 md:px-4 py-2 rounded font-bold text-sm text-cyan-200 hover:bg-cyan-800 transition-colors";
+      document.getElementById('tab-bio').className = "px-3 md:px-4 py-2 rounded font-bold text-sm text-cyan-200 hover:bg-cyan-800 transition-colors";
+      document.getElementById('tab-ordering').className = "px-3 md:px-4 py-2 rounded font-bold text-sm text-cyan-200 hover:bg-cyan-800 transition-colors";
       
       if(tab === 'freezer') { document.getElementById('tab-freezer').classList.add('bg-cyan-700', 'text-white'); document.getElementById('view-freezer').classList.remove('hidden'); showScreen('screen-master-grid'); renderFreezer(); }
       if(tab === 'global') { document.getElementById('tab-global').classList.add('bg-cyan-700', 'text-white'); document.getElementById('view-global').classList.remove('hidden'); renderGlobalInventory(); }
@@ -353,7 +364,6 @@
                 <span class="text-xs font-bold text-slate-700">Est. Cost: <span class="font-medium text-emerald-600">${req.cost}</span></span>
                 <a href="${req.link}" target="_blank" class="text-xs text-blue-500 hover:underline">Link &rarr;</a>
               </div>
-              
               <div class="flex items-center justify-between mt-3 pt-3 border-t border-slate-100">
                 <div class="flex gap-1">
                   <button onclick="updateRequestStatus('${req.id}', 'Approved')" class="text-[10px] font-bold uppercase bg-slate-100 text-slate-600 hover:bg-emerald-100 hover:text-emerald-700 px-2 py-1 rounded transition-colors">Approve</button>
@@ -372,9 +382,13 @@
       const ordTbody = document.getElementById('orders-tbody');
       let ordHtml = '';
       if(orders.length === 0) {
-        ordHtml = `<tr><td colspan="5" class="p-3 text-center text-slate-400 text-sm">No orders logged.</td></tr>`;
+        ordHtml = `<tr><td colspan="6" class="p-3 text-center text-slate-400 text-sm">No orders logged.</td></tr>`;
       } else {
         orders.forEach(o => {
+          let actionHtml = o.receiver 
+            ? `<div class="text-[11px] text-emerald-700 bg-emerald-50 border border-emerald-200 p-1.5 rounded text-left inline-block"><b>✔ Received</b> by ${o.receiver} on ${o.receivedDate}<br><span class="text-slate-500">Loc: ${o.storageLoc}</span></div>`
+            : `<button onclick="openReceiveOrderModal('${o.id}')" class="text-[10px] font-bold uppercase bg-indigo-50 text-indigo-600 hover:bg-indigo-100 px-3 py-1.5 rounded transition-colors">Mark Received</button>`;
+            
           ordHtml += `
             <tr class="hover:bg-slate-50 transition-colors">
               <td class="p-3 font-bold text-slate-800 text-sm">${o.name}</td>
@@ -382,6 +396,7 @@
               <td class="p-3 text-xs text-slate-500">${o.date}</td>
               <td class="p-3 text-xs text-slate-600">Qty: ${o.qty || '-'} <br> <span class="text-emerald-600 font-medium">${o.cost || '-'}</span></td>
               <td class="p-3 text-xs text-blue-500 truncate max-w-[120px] font-mono" title="${o.track}">${o.track || 'N/A'}</td>
+              <td class="p-3 text-right">${actionHtml}</td>
             </tr>`;
         });
       }
@@ -390,6 +405,14 @@
 
     function openOrderRequestModal() { document.getElementById('form-add-request').reset(); openModal('add-request-modal'); }
     function openAddOrderModal() { document.getElementById('form-add-order').reset(); document.getElementById('input-ord-date').valueAsDate = new Date(); openModal('add-order-modal'); }
+
+    function openReceiveOrderModal(id) {
+       document.getElementById('input-recv-id').value = id;
+       document.getElementById('input-recv-date').valueAsDate = new Date();
+       document.getElementById('input-recv-loc').value = '';
+       populateOwnerDropdowns();
+       openModal('receive-order-modal');
+    }
 
     function openComments(reqId) {
       document.getElementById('input-comment-req-id').value = reqId;
@@ -410,7 +433,6 @@
         listContainer.innerHTML = `<div class="text-xs text-slate-400 italic text-center py-4">No comments yet.</div>`;
       }
       openModal('comment-modal');
-      
       setTimeout(() => { listContainer.scrollTop = listContainer.scrollHeight; }, 50);
     }
 
@@ -586,7 +608,7 @@
     safeAddListener('form-add-protein', 'submit', async (e) => { e.preventDefault(); const btn = document.getElementById('btn-add-protein'); btn.innerText = "Saving..."; btn.disabled = true; const combinedVal = document.getElementById('input-prot-owner').value; const selectedColor = combinedVal ? combinedVal.split('|')[0] : '#0f172a'; const payload = { action: 'saveProtein', tray: current.tray, boxNum: current.boxNum, boxName: current.boxName, pillboxNum: current.pillboxNum, pillboxName: current.pillboxName, pillboxDate: current.pillboxDate, entryNum: current.entryNum, proteinName: document.getElementById('input-prot-name').value, color: selectedColor, concentration: document.getElementById('input-prot-conc').value, origin: document.getElementById('input-prot-origin').value, notes: document.getElementById('input-prot-notes').value, date: document.getElementById('input-prot-date').value }; localStorage.setItem('labOwnerColor', selectedColor); try { await fetch(GAS_WEB_APP_URL, { method: 'POST', body: JSON.stringify(payload) }); inventory.push(payload); closeModal('add-protein-modal'); document.getElementById('form-add-protein').reset(); viewBox(current.tray, current.boxNum); } catch (err) { alert('Failed.'); } finally { btn.innerText = "Save"; btn.disabled = false; } });
     safeAddListener('form-add-glycerol', 'submit', async (e) => { e.preventDefault(); const btn = document.getElementById('btn-add-glycerol'); btn.innerText = "Saving..."; btn.disabled = true; const combinedVal = document.getElementById('input-glyc-owner').value; const selectedColor = combinedVal ? combinedVal.split('|')[0] : '#1d4ed8'; const selectedPerson = combinedVal ? combinedVal.split('|')[1] : 'Unknown'; const payload = { action: 'saveGlycerol', boxNum: current.glycBoxId, slotNum: current.glycSlotNum, gkdId: document.getElementById('input-glyc-gkd').value, construct: document.getElementById('input-glyc-construct').value, cellStrain: document.getElementById('input-glyc-strain').value, person: selectedPerson, color: selectedColor, origin: document.getElementById('input-glyc-origin').value, notes: document.getElementById('input-glyc-notes').value, date: document.getElementById('input-glyc-date').value }; try { await fetch(GAS_WEB_APP_URL, { method: 'POST', body: JSON.stringify(payload) }); const existingIdx = glycerolInventory.findIndex(i => i.boxNum === payload.boxNum && i.slotNum === payload.slotNum); if (existingIdx >= 0) glycerolInventory[existingIdx] = payload; else glycerolInventory.push(payload); closeModal('add-glycerol-modal'); viewGlycerolBox(current.glycBoxId, current.tray, current.boxNum); } catch (err) { alert('Failed.'); } finally { btn.innerText = "Save"; btn.disabled = false; } });
     safeAddListener('form-cell', 'submit', async (e) => { e.preventDefault(); const btn = document.getElementById('btn-save-cell'); btn.innerText = "Saving..."; btn.disabled = true; const combinedVal = document.getElementById('input-cell-owner').value; const col = combinedVal ? combinedVal.split('|')[0] : '#4f46e5'; const per = combinedVal ? combinedVal.split('|')[1] : 'Unknown'; const den = parseFloat(document.getElementById('input-cell-density').value); const vol = parseFloat(document.getElementById('input-cell-vol').value); const fls = parseInt(document.getElementById('input-cell-flasks').value); const payload = { action: 'saveCulture', id: document.getElementById('input-cell-id').value, cellType: document.getElementById('input-cell-type').value, doublingTime: document.getElementById('input-cell-doubling').value, passageNum: document.getElementById('input-cell-passage').value, density: den, volume: vol, flasks: fls, totalCells: den * vol * fls, person: per, color: col, lastSplitTime: new Date().toISOString() }; try { await fetch(GAS_WEB_APP_URL, { method: 'POST', body: JSON.stringify(payload) }); await fetchInventoryData(); closeModal('cell-modal'); renderBio(); } catch (err) { alert('Failed to save cell culture.'); } finally { btn.innerText = "Save Culture"; btn.disabled = false; } });
-
+    
     // --- ORDERING EVENT LISTENERS ---
     safeAddListener('form-add-order', 'submit', async (e) => {
       e.preventDefault(); const btn = document.getElementById('btn-save-order'); btn.innerText = "Saving..."; btn.disabled = true;
@@ -599,6 +621,14 @@
         await fetch(GAS_WEB_APP_URL, { method: 'POST', body: JSON.stringify(payload) });
         orders.push({ id: "ORD-" + Date.now(), ...payload }); closeModal('add-order-modal'); renderOrdering();
       } catch (err) { alert('Failed to save order.'); } finally { btn.innerText = "Log Order"; btn.disabled = false; }
+    });
+
+    safeAddListener('form-receive-order', 'submit', async (e) => {
+       e.preventDefault(); const btn = document.getElementById('btn-save-receive'); btn.innerText = "Saving..."; btn.disabled = true;
+       const combinedVal = document.getElementById('input-recv-owner').value;
+       const per = combinedVal ? combinedVal.split('|')[1] : 'Unknown';
+       const payload = { action: 'markOrderReceived', id: document.getElementById('input-recv-id').value, person: per, date: document.getElementById('input-recv-date').value, location: document.getElementById('input-recv-loc').value };
+       try { await fetch(GAS_WEB_APP_URL, { method: 'POST', body: JSON.stringify(payload) }); const o = orders.find(x => x.id === payload.id); if (o) { o.receiver = payload.person; o.receivedDate = payload.date; o.storageLoc = payload.location; } closeModal('receive-order-modal'); renderOrdering(); } catch (err) { alert('Failed to mark received.'); } finally { btn.innerText = "Save"; btn.disabled = false; }
     });
 
     safeAddListener('form-add-request', 'submit', async (e) => {
@@ -620,7 +650,6 @@
       const per = combinedVal ? combinedVal.split('|')[1] : 'Unknown';
       const reqId = document.getElementById('input-comment-req-id').value;
       const txt = document.getElementById('input-comment-text').value;
-      
       try {
         await fetch(GAS_WEB_APP_URL, { method: 'POST', body: JSON.stringify({ action: 'addRequestComment', id: reqId, person: per, text: txt }) });
         const req = orderRequests.find(r => r.id === reqId);
@@ -629,6 +658,8 @@
       } catch (err) { alert('Failed to post comment.'); } finally { btn.innerText = "Post"; btn.disabled = false; }
     });
 
+    function compressImage(file, callback) { const reader = new FileReader(); reader.onload = (e) => { const img = new Image(); img.onload = () => { const canvas = document.createElement('canvas'); const maxW = 400; const scale = Math.min(maxW / img.width, 1); canvas.width = img.width * scale; canvas.height = img.height * scale; const ctx = canvas.getContext('2d'); ctx.drawImage(img, 0, 0, canvas.width, canvas.height); callback(canvas.toDataURL('image/jpeg', 0.6)); }; img.src = e.target.result; }; reader.readAsDataURL(file); }
+    
     safeAddListener('form-virus', 'submit', async (e) => { e.preventDefault(); const btn = document.getElementById('btn-save-virus'); btn.innerText = "Saving..."; btn.disabled = true; const combinedVal = document.getElementById('input-virus-owner').value; const col = combinedVal ? combinedVal.split('|')[0] : '#10b981'; const per = combinedVal ? combinedVal.split('|')[1] : 'Unknown'; const fileInput = document.getElementById('input-virus-file'); const sendPayload = async (imgStr) => { const payload = { action: 'saveVirus', passage: document.getElementById('input-virus-passage').value, virusName: document.getElementById('input-virus-name').value, startTime: document.getElementById('input-virus-time').value, person: per, color: col, imageStr: imgStr }; try { await fetch(GAS_WEB_APP_URL, { method: 'POST', body: JSON.stringify(payload) }); await fetchInventoryData(); closeModal('virus-modal'); renderBio(); } catch (err) { alert('Failed to save virus.'); } finally { btn.innerText = "Save Virus"; btn.disabled = false; } }; if (fileInput.files && fileInput.files[0]) { compressImage(fileInput.files[0], sendPayload); } else { sendPayload(""); } });
     safeAddListener('global-search', 'input', (e) => { const term = e.target.value.toLowerCase(); const rows = document.getElementById('global-table-body').getElementsByTagName('tr'); for(let r of rows) { r.style.display = r.innerText.toLowerCase().includes(term) ? '' : 'none'; } });
     safeAddListener('search-input', 'input', (e) => { const q = e.target.value.toLowerCase().trim(); const resContainer = document.getElementById('search-results'); resContainer.innerHTML = ''; if (!q) { resContainer.classList.add('hidden'); return; } const results = [ ...inventory.filter(i => i.proteinName && (i.proteinName.toLowerCase().includes(q) || i.notes.toLowerCase().includes(q))).map(i => ({ type: 'protein', ...i })), ...glycerolInventory.filter(g => g.gkdId.toLowerCase().includes(q) || g.construct.toLowerCase().includes(q) || g.notes.toLowerCase().includes(q)).map(g => ({ type: 'glycerol', ...g })) ].slice(0, 15); if (results.length === 0) { resContainer.innerHTML = `<div class="p-4 text-sm text-slate-500">No matching items found.</div>`; } else { results.forEach(res => { if (res.type === 'protein') { resContainer.innerHTML += `<div onclick="goToProteinSearch('${res.tray}', '${res.boxNum}', '${res.pillboxNum}', '${res.entryNum}')" class="p-3 hover:bg-cyan-50 border-b border-slate-100 cursor-pointer flex items-center justify-between"><div><div class="font-bold text-cyan-900">${res.proteinName}</div><div class="text-xs text-slate-500 mt-1">Tray ${res.tray} &rarr; Box ${res.boxNum} &rarr; Pillbox ${res.pillboxNum} &rarr; Slot ${res.entryNum}</div></div><div class="w-4 h-4 rounded shadow-sm" style="background-color: ${res.color}"></div></div>`; } else { const mapKey = Object.keys(glycMap).find(k => glycMap[k] === res.boxNum); const locStr = mapKey ? `Tray ${mapKey.split('-')[0]} &rarr; Box ${mapKey.split('-')[1]} (Glycerol) &rarr; Slot ${res.slotNum}` : `Unplaced Glycerol Box ${res.boxNum} &rarr; Slot ${res.slotNum}`; resContainer.innerHTML += `<div onclick="goToGlycerolSearch('${mapKey}', '${res.boxNum}', '${res.slotNum}')" class="p-3 hover:bg-blue-50 border-b border-slate-100 cursor-pointer flex items-center justify-between"><div><div class="font-bold text-blue-900">${res.gkdId} - ${res.construct}</div><div class="text-xs text-slate-500 mt-1">${locStr}</div></div><div class="w-4 h-4 rounded shadow-sm border border-slate-300" style="background-color: ${res.color}"></div></div>`; } }); } resContainer.classList.remove('hidden'); });
@@ -637,7 +668,7 @@
     
     // --- MODAL UTILITIES ---
     function openSettingsModal() { const list = document.getElementById('team-list'); list.innerHTML = team.length === 0 ? '<div class="text-sm text-slate-400">No team members added yet.</div>' : ''; team.forEach(u => { list.innerHTML += `<div class="flex items-center space-x-3 p-2 bg-slate-50 rounded border"><div class="w-4 h-4 rounded-full" style="background-color:${u.color}"></div><span class="font-bold text-slate-700">${u.name}</span></div>`; }); openModal('settings-modal'); }
-    function populateOwnerDropdowns(trayId = null) { const selects = ['input-prot-owner', 'input-glyc-owner', 'select-tray-owner', 'input-cell-owner', 'input-virus-owner', 'input-comment-owner']; let options = `<option value="">-- Select Member --</option>`; team.forEach(u => options += `<option value="${u.color}|${u.name}">${u.name}</option>`); selects.forEach(id => { const el = document.getElementById(id); if(el) el.innerHTML = options; }); const tSelect = document.getElementById('select-tray-owner'); if (trayId && trayOwners[trayId] && tSelect) { const matchingColor = trayOwners[trayId]; Array.from(tSelect.options).forEach(opt => { if(opt.value.startsWith(matchingColor)) tSelect.value = opt.value; }); } }
+    function populateOwnerDropdowns(trayId = null) { const selects = ['input-prot-owner', 'input-glyc-owner', 'select-tray-owner', 'input-cell-owner', 'input-virus-owner', 'input-comment-owner', 'input-recv-owner']; let options = `<option value="">-- Select Member --</option>`; team.forEach(u => options += `<option value="${u.color}|${u.name}">${u.name}</option>`); selects.forEach(id => { const el = document.getElementById(id); if(el) el.innerHTML = options; }); const tSelect = document.getElementById('select-tray-owner'); if (trayId && trayOwners[trayId] && tSelect) { const matchingColor = trayOwners[trayId]; Array.from(tSelect.options).forEach(opt => { if(opt.value.startsWith(matchingColor)) tSelect.value = opt.value; }); } }
     async function assignTrayOwner(combinedValue) { const colorValue = combinedValue.split('|')[0]; try { trayOwners[current.tray] = colorValue; await fetch(GAS_WEB_APP_URL, { method: 'POST', body: JSON.stringify({ action: 'saveSetting', settingType: 'Tray', settingKey: current.tray, settingValue: colorValue }) }); renderFreezer(); } catch(e) { alert('Failed to assign tray owner'); } }
     function getBoxName(tray, boxNum) { const item = inventory.find(i => i.tray === tray && i.boxNum === String(boxNum) && i.boxName !== ""); return item ? item.boxName : null; }
 
@@ -683,9 +714,15 @@
     function openAddProteinModal(pNum, pName, pDate, eNum) { current.pillboxNum = pNum; current.pillboxName = pName; current.pillboxDate = pDate; current.entryNum = eNum; document.getElementById('add-protein-title').innerText = `Slot ${eNum}`; document.getElementById('input-prot-date').valueAsDate = new Date(); populateOwnerDropdowns(); const savedColor = localStorage.getItem('labOwnerColor'); if (savedColor) { const sel = document.getElementById('input-prot-owner'); Array.from(sel.options).forEach(opt => { if(opt.value.startsWith(savedColor)) sel.value = opt.value; }); } openModal('add-protein-modal'); }
     function openAddGlycerolModal(slotNum) { current.glycSlotNum = slotNum; document.getElementById('form-add-glycerol').reset(); document.getElementById('input-glyc-date').valueAsDate = new Date(); populateOwnerDropdowns(); const savedColor = localStorage.getItem('labOwnerColor'); if (savedColor) { const sel = document.getElementById('input-glyc-owner'); Array.from(sel.options).forEach(opt => { if(opt.value.startsWith(savedColor)) sel.value = opt.value; }); } openModal('add-glycerol-modal'); }
     function openEditGlycerolModal(slotNum) { current.glycSlotNum = slotNum; const entry = glycerolInventory.find(i => i.boxNum === String(current.glycBoxId) && i.slotNum === String(slotNum)); if (!entry) return; populateOwnerDropdowns(); document.getElementById('input-glyc-gkd').value = entry.gkdId; document.getElementById('input-glyc-construct').value = entry.construct; document.getElementById('input-glyc-strain').value = entry.cellStrain; document.getElementById('input-glyc-origin').value = entry.origin; document.getElementById('input-glyc-notes').value = entry.notes; document.getElementById('input-glyc-date').value = entry.date; const sel = document.getElementById('input-glyc-owner'); Array.from(sel.options).forEach(opt => { if(opt.value.startsWith(entry.color)) sel.value = opt.value; }); openModal('add-glycerol-modal'); }
-    
+    async function deleteGlycerol(slotNum) { if(!confirm(`Delete Glycerol Stock in Slot ${slotNum}?`)) return; try { await fetch(GAS_WEB_APP_URL, { method: 'POST', body: JSON.stringify({ action: 'deleteGlycerol', boxNum: current.glycBoxId, slotNum: slotNum }) }); glycerolInventory = glycerolInventory.filter(i => !(i.boxNum === String(current.glycBoxId) && i.slotNum === String(slotNum))); viewGlycerolBox(current.glycBoxId, current.tray, current.boxNum); } catch (err) { alert('Failed.'); } }
+    async function harvestVirus(id) { if(!confirm("Mark this virus as harvested/completed?")) return; try { await fetch(GAS_WEB_APP_URL, { method: 'POST', body: JSON.stringify({ action: 'harvestVirus', id: id }) }); viruses = viruses.filter(v => v.id !== id); renderBio(); } catch(e) { alert('Failed to harvest virus.'); } }
+
     function goToProteinSearch(tray, box, pNum, eNum) { switchTab('freezer'); viewBox(tray, box); setTimeout(() => { const el = document.getElementById(`entry-${tray}-${box}-${pNum}-${eNum}`); if (el) { el.classList.add('bg-yellow-100', 'ring-2'); setTimeout(() => el.classList.remove('bg-yellow-100', 'ring-2'), 3000); } }, 100); }
     function goToGlycerolSearch(mapKey, glycBoxId, slotNum) { switchTab('freezer'); if (!mapKey || mapKey === 'undefined') { alert("This Glycerol Box has not been placed in a Tray yet."); return; } viewGlycerolBox(glycBoxId, mapKey.split('-')[0], mapKey.split('-')[1]); setTimeout(() => { const el = document.getElementById(`glyc-slot-${glycBoxId}-${slotNum}`); if (el) { el.classList.add('bg-yellow-100', 'ring-2'); el.scrollIntoView({ behavior: 'smooth', block: 'center' }); setTimeout(() => el.classList.remove('bg-yellow-100', 'ring-2'), 3000); } }, 100); }
+
+    function autoFillDoubling() { const type = document.getElementById('input-cell-type').value; const dtInput = document.getElementById('input-cell-doubling'); if (type === 'Sf9') dtInput.value = '24-30'; else if (type === 'High Five') dtInput.value = '18'; else dtInput.value = ''; }
+    function openCellModal(existingId = null) { document.getElementById('form-cell').reset(); populateOwnerDropdowns(); if(existingId) { const c = cellCultures.find(x => x.id === existingId); document.getElementById('cell-modal-title').innerText = "Split Culture"; document.getElementById('input-cell-id').value = c.id; const typeSelect = document.getElementById('input-cell-type'); if(Array.from(typeSelect.options).some(o => o.value === c.cellType)) { typeSelect.value = c.cellType; } else { typeSelect.value = 'Custom'; } document.getElementById('input-cell-doubling').value = c.doublingTime; document.getElementById('input-cell-passage').value = parseInt(c.passageNum) + 1; document.getElementById('input-cell-flasks').value = c.flasks; document.getElementById('input-cell-vol').value = c.volume; const ownerSel = document.getElementById('input-cell-owner'); Array.from(ownerSel.options).forEach(opt => { if(opt.value.startsWith(c.color)) ownerSel.value = opt.value; }); } else { document.getElementById('cell-modal-title').innerText = "New Cell Culture"; document.getElementById('input-cell-id').value = ""; } openModal('cell-modal'); }
+    function openVirusModal() { document.getElementById('form-virus').reset(); document.getElementById('input-virus-time').value = new Date().toISOString().slice(0, 16); populateOwnerDropdowns(); openModal('virus-modal'); }
 
     init();
   </script>
