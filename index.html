@@ -336,7 +336,23 @@
     safeAddListener('global-search', 'input', (e) => { const term = e.target.value.toLowerCase(); const rows = document.getElementById('global-table-body').getElementsByTagName('tr'); for(let r of rows) { r.style.display = r.innerText.toLowerCase().includes(term) ? '' : 'none'; } });
     safeAddListener('search-input', 'input', (e) => { const q = e.target.value.toLowerCase().trim(); const resContainer = document.getElementById('search-results'); resContainer.innerHTML = ''; if (!q) { resContainer.classList.add('hidden'); return; } const results = [ ...inventory.filter(i => i.proteinName && (i.proteinName.toLowerCase().includes(q) || i.notes.toLowerCase().includes(q))).map(i => ({ type: 'protein', ...i })), ...glycerolInventory.filter(g => g.gkdId.toLowerCase().includes(q) || g.construct.toLowerCase().includes(q) || g.notes.toLowerCase().includes(q)).map(g => ({ type: 'glycerol', ...g })) ].slice(0, 15); if (results.length === 0) { resContainer.innerHTML = `<div class="p-4 text-sm text-slate-500">No matching items found.</div>`; } else { results.forEach(res => { if (res.type === 'protein') { resContainer.innerHTML += `<div onclick="goToProteinSearch('${res.tray}', '${res.boxNum}', '${res.pillboxNum}', '${res.entryNum}')" class="p-3 hover:bg-cyan-50 border-b border-slate-100 cursor-pointer flex items-center justify-between"><div><div class="font-bold text-cyan-900">${res.proteinName}</div><div class="text-xs text-slate-500 mt-1">Tray ${res.tray} &rarr; Box ${res.boxNum} &rarr; Pillbox ${res.pillboxNum} &rarr; Slot ${res.entryNum}</div></div><div class="w-4 h-4 rounded shadow-sm" style="background-color: ${res.color}"></div></div>`; } else { const mapKey = Object.keys(glycMap).find(k => glycMap[k] === res.boxNum); const locStr = mapKey ? `Tray ${mapKey.split('-')[0]} &rarr; Box ${mapKey.split('-')[1]} (Glycerol) &rarr; Slot ${res.slotNum}` : `Unplaced Glycerol Box ${res.boxNum} &rarr; Slot ${res.slotNum}`; resContainer.innerHTML += `<div onclick="goToGlycerolSearch('${mapKey}', '${res.boxNum}', '${res.slotNum}')" class="p-3 hover:bg-blue-50 border-b border-slate-100 cursor-pointer flex items-center justify-between"><div><div class="font-bold text-blue-900">${res.gkdId} - ${res.construct}</div><div class="text-xs text-slate-500 mt-1">${locStr}</div></div><div class="w-4 h-4 rounded shadow-sm border border-slate-300" style="background-color: ${res.color}"></div></div>`; } }); } resContainer.classList.remove('hidden'); });
     document.addEventListener('click', (e) => { if (!e.target.closest('.relative.w-64')) { const sr = document.getElementById('search-results'); if(sr) sr.classList.add('hidden'); } });
-
+async function submitRenameBox() {
+      const newName = document.getElementById('input-new-box-name').value;
+      const btn = document.getElementById('btn-rename-box');
+      btn.innerText = "Saving..."; btn.disabled = true;
+      try {
+        await fetch(GAS_WEB_APP_URL, { method: 'POST', body: JSON.stringify({ action: 'renameBox', tray: current.tray, boxNum: current.boxNum, newName: newName }) });
+        let found = false;
+        inventory.forEach(i => { if(i.tray === current.tray && i.boxNum === String(current.boxNum)) { i.boxName = newName; found = true; } });
+        if (!found) inventory.push({ tray: current.tray, boxNum: String(current.boxNum), boxName: newName, pillboxNum: "", pillboxName: "", pillboxDate: "", entryNum: "", proteinName: "", color: "", concentration: "", origin: "", notes: "", proteinDate: "" });
+        closeModal('rename-box-modal');
+        openRackModal(current.tray);
+      } catch (err) {
+        alert('Failed.');
+      } finally {
+        btn.innerText = "Save"; btn.disabled = false;
+      }
+    }
     // Start App
     safeAddListener('btn-rename-box', 'click', submitRenameBox);
     init();
