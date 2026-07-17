@@ -4,7 +4,7 @@
   <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Kleiger Lab LIMS</title><script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <style>.table-scroll::-webkit-scrollbar{width:8px;height:8px}.table-scroll::-webkit-scrollbar-track{background:#f1f5f9}.table-scroll::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:4px}.drag-over{background-color:#fef08a!important;border:2px dashed #eab308!important;transform:scale(1.05)}.calendar-col{min-width:140px} .out-of-stock { text-decoration: line-through; opacity: 0.6; }</style>
+  <style>.table-scroll::-webkit-scrollbar{width:8px;height:8px}.table-scroll::-webkit-scrollbar-track{background:#f1f5f9}.table-scroll::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:4px}.drag-over{background-color:#fef08a!important;border:2px dashed #eab308!important;transform:scale(1.05)}.calendar-col{min-width:140px} .out-of-stock { text-decoration: line-through; opacity: 0.6; } details summary::-webkit-details-marker { display: none; } details summary { list-style: none; }</style>
 </head>
 <body class="bg-slate-50 min-h-screen text-slate-800 font-sans">
   <nav class="bg-cyan-950 shadow-lg border-b border-cyan-900 sticky top-0 z-30 px-6 py-3 flex flex-wrap justify-between items-center text-white gap-4">
@@ -90,7 +90,7 @@
         
         inventory = (result.data || []).map(cols => { let pD = cols[5]; if(pD && String(pD).includes('T')) pD = String(pD).split('T')[0]; let prD = cols[12]; if(prD && String(prD).includes('T')) prD = String(prD).split('T')[0]; return { tray: String(cols[0]).trim(), boxNum: String(cols[1]).trim(), boxName: String(cols[2]).trim(), pillboxNum: String(cols[3]).trim(), pillboxName: String(cols[4]).trim(), pillboxDate: pD, entryNum: String(cols[6]).trim(), proteinName: String(cols[7]).trim(), color: String(cols[8] || '#0f172a').trim(), concentration: String(cols[9]).trim(), origin: String(cols[10]).trim(), notes: String(cols[11]).trim(), proteinDate: prD }; }).filter(item => item.tray && item.boxNum); 
         glycerolInventory = (result.glycerol || []).map(cols => { let gDate = cols[9]; if(gDate && String(gDate).includes('T')) gDate = String(gDate).split('T')[0]; return { boxNum: String(cols[0]).trim(), slotNum: String(cols[1]).trim(), gkdId: String(cols[2]).trim(), construct: String(cols[3]).trim(), cellStrain: String(cols[4]).trim(), person: String(cols[5]).trim(), color: String(cols[6] || '#1d4ed8').trim(), origin: String(cols[7]).trim(), notes: String(cols[8]).trim(), date: gDate, seqStr: String(cols[10] || '').trim() }; }).filter(item => item.boxNum && item.slotNum);
-        cellCultures = (result.cells || []).map(cols => ({ id: String(cols[0]).trim(), cellType: String(cols[1]).trim(), doublingTime: String(cols[2]).trim(), passageNum: parseInt(cols[3])||0, density: parseFloat(cols[4])||0, volume: parseFloat(cols[5])||0, flasks: parseInt(cols[6])||0, totalCells: parseFloat(cols[7])||0, person: String(cols[8]).trim(), color: String(cols[9] || '#4f46e5').trim(), lastSplitTime: cols[10], isExp: String(cols[11]) === 'true', expStart: cols[12], history: cols[13] || "[]" }));
+        cellCultures = (result.cells || []).map(cols => ({ id: String(cols[0]).trim(), cellType: String(cols[1]).trim(), doublingTime: String(cols[2]).trim(), passageNum: parseInt(cols[3])||0, density: parseFloat(cols[4])||0, volume: parseFloat(cols[5])||0, flasks: parseInt(cols[6])||0, totalCells: parseFloat(cols[7])||0, person: String(cols[8]).trim(), color: String(cols[9] || '#4f46e5').trim(), lastSplitTime: cols[10], isExp: String(cols[11]) === 'true', expStart: cols[12], history: (cols[13] && String(cols[13]).trim() !== '' && String(cols[13]).trim() !== 'null') ? cols[13] : "[]" }));
         viruses = (result.virus || []).map(cols => ({ id: String(cols[0]).trim(), passage: String(cols[1]).trim(), virusName: String(cols[2]).trim(), startTime: cols[3], imageStr: String(cols[4]).trim(), person: String(cols[5]).trim(), color: String(cols[6] || '#10b981').trim() }));
         plannedSplits = (result.plans || []).map(cols => ({ id: String(cols[0]).trim(), cellId: String(cols[1]).trim(), date: String(cols[2]).trim(), person: String(cols[3]).trim(), density: String(cols[4]).trim(), volume: String(cols[5]).trim() }));
         orders = (result.orders || []).map(cols => { let oD = cols[5]; if(oD && String(oD).includes('T')) oD = String(oD).split('T')[0]; let rD = cols[9]; if(rD && String(rD).includes('T')) rD = String(rD).split('T')[0]; return { id: String(cols[0]).trim(), name: String(cols[1]).trim(), mfr: String(cols[2]).trim(), cat: String(cols[3]).trim(), track: String(cols[4]).trim(), date: oD, qty: String(cols[5]).trim(), cost: String(cols[6]).trim(), receiver: String(cols[8]||'').trim(), receivedDate: rD||'', storageLoc: String(cols[10]||'').trim() }; });
@@ -191,8 +191,8 @@
         let expectedStr = expectedMin.toFixed(2); if(dtMin !== dtMax) expectedStr += ` - ${expectedMax.toFixed(2)}`; let totalCells = (c.density * c.volume * c.flasks).toFixed(1); 
         let densityAlert = ""; let displayDensity = expectedStr; let expectedNum = parseFloat(expectedMax); let ttHtml = '';
         
-        if (c.cellType === 'Sf9') ttHtml = `<div class="relative group inline-block ml-2"><span class="cursor-help text-cyan-600">ℹ️</span><div class="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 hidden group-hover:block bg-slate-800 text-white text-xs p-3 rounded w-64 z-50 shadow-xl font-normal leading-relaxed"><b>Sf9 Doubling:</b> 24-30 hrs. Significant lag phase upon thawing.<br><br><b>Rules:</b><br>• Never split below 0.4e6/mL<br>• Never exceed 6.0e6/mL<br>• Split cells only >3e6/mL<br>• Use Sf-900 II SFM</div></div>`;
-        else if (c.cellType === 'High Five') ttHtml = `<div class="relative group inline-block ml-2"><span class="cursor-help text-cyan-600">ℹ️</span><div class="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 hidden group-hover:block bg-slate-800 text-white text-xs p-3 rounded w-64 z-50 shadow-xl font-normal leading-relaxed"><b>High Five Doubling:</b> 18-24 hrs. Larger vols double slower.<br><br><b>Rules:</b><br>• Never split below 0.3e6/mL<br>• Never exceed 7.0e6/mL<br>• Keep cells ≤ 5.0e6/mL<br>• Split cells only >3e6/mL<br>• Use ESF921 media</div></div>`;
+        if (c.cellType === 'Sf9') ttHtml = `<details class="inline-block relative ml-2 select-none align-middle text-sm"><summary class="list-none cursor-pointer text-cyan-600 focus:outline-none selection:bg-transparent">ℹ️</summary><div class="absolute left-1/2 -translate-x-1/2 top-full mt-1 bg-slate-800 text-white text-xs p-3 rounded w-64 z-50 shadow-xl font-normal leading-relaxed text-left"><b>Sf9 Doubling:</b> 24-30 hrs. Significant lag phase upon thawing.<br><br><b>Rules:</b><br>• Never split below 0.4e6/mL<br>• Never exceed 6.0e6/mL<br>• Split cells only >3e6/mL<br>• Use Sf-900 II SFM</div></details>`;
+        else if (c.cellType === 'High Five') ttHtml = `<details class="inline-block relative ml-2 select-none align-middle text-sm"><summary class="list-none cursor-pointer text-cyan-600 focus:outline-none selection:bg-transparent">ℹ️</summary><div class="absolute left-1/2 -translate-x-1/2 top-full mt-1 bg-slate-800 text-white text-xs p-3 rounded w-64 z-50 shadow-xl font-normal leading-relaxed text-left"><b>High Five Doubling:</b> 18-24 hrs. Larger vols double slower.<br><br><b>Rules:</b><br>• Never split below 0.3e6/mL<br>• Never exceed 7.0e6/mL<br>• Keep cells ≤ 5.0e6/mL<br>• Split cells only >3e6/mL<br>• Use ESF921 media</div></details>`;
 
         if(c.isExp) {
            let expHrs = (Date.now() - new Date(c.expStart).getTime()) / 3600000;
@@ -352,7 +352,18 @@
     }
     
     safeAddListener('btn-rename-box', 'click', submitRenameBox);
+    document.addEventListener('click', (e) => {
+      const details = e.target.closest('details');
+      if (!details) {
+        document.querySelectorAll('details[open]').forEach(el => el.removeAttribute('open'));
+      } else {
+        document.querySelectorAll('details[open]').forEach(el => {
+          if (el !== details) el.removeAttribute('open');
+        });
+      }
+    });
     init();
   </script>
 </body>
 </html>
+
