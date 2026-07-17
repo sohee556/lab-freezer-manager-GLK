@@ -4,12 +4,13 @@
   <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Kleiger Lab LIMS</title><script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <style>.table-scroll::-webkit-scrollbar{width:8px;height:8px}.table-scroll::-webkit-scrollbar-track{background:#f1f5f9}.table-scroll::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:4px}.drag-over{background-color:#fef08a!important;border:2px dashed #eab308!important;transform:scale(1.05)}.calendar-col{min-width:140px} .out-of-stock { text-decoration: line-through; opacity: 0.6; } details summary::-webkit-details-marker { display: none; } details summary { list-style: none; }</style>
 </head>
 <body class="bg-slate-50 min-h-screen text-slate-800 font-sans">
   <nav class="bg-cyan-950 shadow-lg border-b border-cyan-900 sticky top-0 z-30 px-6 py-3 flex flex-wrap justify-between items-center text-white gap-4">
     <div><h1 class="text-2xl font-bold tracking-wide shrink-0">Kleiger Lab LIMS</h1></div>
-    <div class="flex flex-wrap gap-2 bg-cyan-900 p-1 rounded-lg"><button onclick="switchTab('freezer')" id="tab-freezer" class="px-2 py-1.5 rounded font-bold text-sm bg-cyan-700 text-white transition-colors">❄️ Freezer Grid</button><button onclick="switchTab('global')" id="tab-global" class="px-2 py-1.5 rounded font-bold text-sm text-cyan-200 hover:bg-cyan-800 transition-colors">📋 Global</button><button onclick="switchTab('bio')" id="tab-bio" class="px-2 py-1.5 rounded font-bold text-sm text-cyan-200 hover:bg-cyan-800 transition-colors">🦠 Bio</button><button onclick="switchTab('dna')" id="tab-dna" class="px-2 py-1.5 rounded font-bold text-sm text-cyan-200 hover:bg-cyan-800 transition-colors">🧬 DNA/Primers</button><button onclick="switchTab('chem')" id="tab-chem" class="px-2 py-1.5 rounded font-bold text-sm text-cyan-200 hover:bg-cyan-800 transition-colors">🧪 Chemicals</button><button onclick="switchTab('ordering')" id="tab-ordering" class="px-2 py-1.5 rounded font-bold text-sm text-cyan-200 hover:bg-cyan-800 transition-colors">📦 Ordering</button><button onclick="switchTab('calc')" id="tab-calc" class="px-2 py-1.5 rounded font-bold text-sm text-cyan-200 hover:bg-cyan-800 transition-colors">🧮 Calcs</button></div>
+    <div class="flex flex-wrap gap-2 bg-cyan-900 p-1 rounded-lg"><button onclick="switchTab('freezer')" id="tab-freezer" class="px-2 py-1.5 rounded font-bold text-sm bg-cyan-700 text-white transition-colors">❄️ Freezer Grid</button><button onclick="switchTab('global')" id="tab-global" class="px-2 py-1.5 rounded font-bold text-sm text-cyan-200 hover:bg-cyan-800 transition-colors">📋 Global</button><button onclick="switchTab('bio')" id="tab-bio" class="px-2 py-1.5 rounded font-bold text-sm text-cyan-200 hover:bg-cyan-800 transition-colors">🦠 Bio</button><button onclick="switchTab('dna')" id="tab-dna" class="px-2 py-1.5 rounded font-bold text-sm text-cyan-200 hover:bg-cyan-800 transition-colors">🧬 DNA/Primers</button><button onclick="switchTab('chem')" id="tab-chem" class="px-2 py-1.5 rounded font-bold text-sm text-cyan-200 hover:bg-cyan-800 transition-colors">🧪 Chemicals</button><button onclick="switchTab('ordering')" id="tab-ordering" class="px-2 py-1.5 rounded font-bold text-sm text-cyan-200 hover:bg-cyan-800 transition-colors">📦 Ordering</button><button onclick="switchTab('archive')" id="tab-archive" class="px-2 py-1.5 rounded font-bold text-sm text-cyan-200 hover:bg-cyan-800 transition-colors">🗄️ Order Archive</button><button onclick="switchTab('calc')" id="tab-calc" class="px-2 py-1.5 rounded font-bold text-sm text-cyan-200 hover:bg-cyan-800 transition-colors">🧮 Calcs</button><button onclick="switchTab('common')" id="tab-common" class="px-2 py-1.5 rounded font-bold text-sm text-cyan-200 hover:bg-cyan-800 transition-colors">📋 Common</button></div>
     <div class="flex items-center space-x-4 w-full md:w-auto"><div class="relative flex-grow md:w-64"><input type="search" id="search-input" placeholder="Search..." class="w-full bg-cyan-900 border border-cyan-800 rounded-full py-2 px-4 text-white placeholder-cyan-500 focus:ring-2 focus:ring-cyan-400 focus:outline-none"><div id="search-results" class="hidden absolute top-full right-0 mt-2 w-96 bg-white border border-slate-200 shadow-xl rounded-lg max-h-80 overflow-y-auto z-50 text-slate-800"></div></div><button onclick="openSettingsModal()" class="flex items-center space-x-2 bg-cyan-800 hover:bg-cyan-700 px-3 py-2 rounded-lg font-medium transition-colors border border-cyan-700"><span>⚙️ Team</span></button></div>
   </nav>
 
@@ -29,7 +30,323 @@
 
     <div id="view-ordering" class="hidden space-y-6"><div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 flex flex-col md:flex-row justify-between items-start gap-6"><div class="shrink-0 w-full md:w-1/3"><h2 class="text-lg font-bold text-slate-800">Current UNLV account (paying):</h2><div class="flex mt-2"><input type="text" id="input-unlv-account" class="border border-slate-300 rounded-l p-2 w-full text-sm font-mono text-indigo-700" placeholder="e.g. PG12345..."><button onclick="saveUnlvAccount()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 rounded-r text-sm font-bold shadow-sm transition-colors">Save</button></div></div><div class="flex-grow w-full border-t md:border-t-0 md:border-l border-slate-200 pt-4 md:pt-0 md:pl-6 overflow-hidden"><div class="flex justify-between items-center mb-3"><h2 class="text-lg font-bold text-slate-800">Common Shipping Addresses</h2><button onclick="openModal('add-shipping-modal'); document.getElementById('form-add-shipping').reset();" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-1 px-3 text-xs rounded shadow-sm">+ Add Address</button></div><div id="shipping-container" class="flex gap-4 overflow-x-auto table-scroll pb-2"></div></div></div><div class="grid grid-cols-1 lg:grid-cols-3 gap-6"><div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 lg:col-span-1 flex flex-col h-[700px]"><div class="flex justify-between items-center mb-4 border-b border-slate-100 pb-4"><h2 class="text-xl font-bold text-slate-800">Order Requests</h2><button onclick="openOrderRequestModal()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-1 px-3 text-sm rounded shadow-sm">+ Request</button></div><p class="text-xs text-slate-500 mb-4 italic">Denied or Held requests vanish after 7 days.</p><div id="requests-container" class="space-y-4 overflow-y-auto pr-2 flex-grow table-scroll"></div></div><div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 lg:col-span-2 flex flex-col h-[700px]"><div class="flex justify-between items-center mb-4 border-b border-slate-100 pb-4"><h2 class="text-xl font-bold text-slate-800">Ordered Items Log</h2><button onclick="openAddOrderModal()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-1 px-3 text-sm rounded shadow-sm">+ Log Order</button></div><div class="overflow-x-auto overflow-y-auto flex-grow table-scroll border border-slate-100 rounded"><table class="w-full text-left text-sm whitespace-nowrap"><thead class="bg-slate-50 sticky top-0 z-10 border-b border-slate-200 text-slate-500"><tr><th class="p-3">Item Name</th><th class="p-3">Mfr / Cat #</th><th class="p-3">Ordered</th><th class="p-3">Qty/Cost</th><th class="p-3">Tracking</th><th class="p-3 text-right">Status / Actions</th></tr></thead><tbody id="orders-tbody" class="divide-y divide-slate-100"></tbody></table></div></div></div></div>
 
-    <div id="view-calc" class="hidden space-y-6"><div class="grid grid-cols-1 lg:grid-cols-2 gap-6"><div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 flex flex-col"><div class="border-b border-slate-100 pb-4 mb-4"><h2 class="text-xl font-bold text-slate-800 flex items-center gap-2">⚖️ Protein Yield Calculator</h2></div><div class="space-y-4"><div><label class="block text-sm font-bold mb-1">Concentration (µM)</label><input type="number" id="calc-prot-conc" class="w-full border border-slate-300 rounded p-2" oninput="calcProteinYield()"></div><div><label class="block text-sm font-bold mb-1">Volume (µL)</label><input type="number" id="calc-prot-vol" class="w-full border border-slate-300 rounded p-2" oninput="calcProteinYield()"></div><div><label class="block text-sm font-bold mb-1">Molecular Weight</label><div class="flex gap-2"><input type="number" id="calc-prot-mw" class="flex-grow border border-slate-300 rounded p-2" oninput="calcProteinYield()"><select id="calc-prot-mw-unit" class="border border-slate-300 rounded p-2 bg-white" onchange="calcProteinYield()"><option value="kDa">kDa</option><option value="Da">Da</option></select></div></div><div><label class="block text-sm font-bold mb-1">Total Expression Vol (Liters) <span class="text-slate-400 font-normal">(Opt)</span></label><input type="number" id="calc-prot-liters" class="w-full border border-slate-300 rounded p-2" oninput="calcProteinYield()"></div><div id="calc-prot-result" class="bg-slate-50 p-4 rounded text-center border border-slate-200 mt-4 min-h-[80px] flex flex-col justify-center"><span class="text-slate-400 text-sm">Enter values above.</span></div></div></div><div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 flex flex-col"><div class="border-b border-slate-100 pb-4 mb-4"><h2 class="text-xl font-bold text-slate-800 flex items-center gap-2">🧪 Buffer Calculator</h2></div><div class="space-y-4"><div><label class="block text-sm font-bold mb-1">Preset Buffers</label><select id="calc-buf-preset" onchange="loadBufferPreset()" class="w-full border border-slate-300 rounded p-2 bg-white"><option value="">-- Custom --</option><option value="Ni-NTA Lysis">Lysis Buffer (Ni-NTA)</option><option value="Ni-NTA Wash">Wash Buffer (Ni-NTA)</option><option value="GST Lysis">Lysis Buffer (GST)</option><option value="GST Wash">Wash Buffer (GST)</option><option value="GST Elution">GST Elution Buffer</option></select></div><div id="calc-buf-note" class="text-xs text-amber-700 bg-amber-50 p-2 rounded hidden border border-amber-200"></div><div><label class="block text-sm font-bold mb-1">Target Buffer Volume (mL)</label><input type="number" id="calc-buf-vol" value="50" oninput="calcBuffer()" class="w-full border border-slate-300 rounded p-2"></div><div class="overflow-x-auto"><table class="w-full text-left text-sm whitespace-nowrap"><thead class="bg-slate-50 border-b border-slate-200 text-slate-500"><tr><th class="p-2">Reagent</th><th class="p-2">Stock</th><th class="p-2">Target</th><th class="p-2 text-right">Add</th></tr></thead><tbody id="calc-buf-tbody" class="divide-y divide-slate-100"></tbody></table></div><div class="flex gap-2 mt-4"><button onclick="addBufferRow()" class="bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-bold py-1 px-3 rounded transition-colors">+ Row</button><button onclick="calcBuffer()" class="flex-grow bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-1 px-3 rounded shadow-sm transition-colors">Calculate</button></div></div></div></div></div>
+<div id="view-calc" class="hidden space-y-6"><div class="grid grid-cols-1 lg:grid-cols-2 gap-6"><div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 flex flex-col"><div class="border-b border-slate-100 pb-4 mb-4"><h2 class="text-xl font-bold text-slate-800 flex items-center gap-2">⚖️ Protein Yield Calculator</h2></div><div class="space-y-4"><div><label class="block text-sm font-bold mb-1">Concentration (µM)</label><input type="number" id="calc-prot-conc" class="w-full border border-slate-300 rounded p-2" oninput="calcProteinYield()"></div><div><label class="block text-sm font-bold mb-1">Volume (µL)</label><input type="number" id="calc-prot-vol" class="w-full border border-slate-300 rounded p-2" oninput="calcProteinYield()"></div><div><label class="block text-sm font-bold mb-1">Molecular Weight</label><div class="flex gap-2"><input type="number" id="calc-prot-mw" class="flex-grow border border-slate-300 rounded p-2" oninput="calcProteinYield()"><select id="calc-prot-mw-unit" class="border border-slate-300 rounded p-2 bg-white" onchange="calcProteinYield()"><option value="kDa">kDa</option><option value="Da">Da</option></select></div></div><div><label class="block text-sm font-bold mb-1">Total Expression Vol (Liters) <span class="text-slate-400 font-normal">(Opt)</span></label><input type="number" id="calc-prot-liters" class="w-full border border-slate-300 rounded p-2" oninput="calcProteinYield()"></div><div id="calc-prot-result" class="bg-slate-50 p-4 rounded text-center border border-slate-200 mt-4 min-h-[80px] flex flex-col justify-center"><span class="text-slate-400 text-sm">Enter values above.</span></div></div></div><div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 flex flex-col"><div class="border-b border-slate-100 pb-4 mb-4"><h2 class="text-xl font-bold text-slate-800 flex items-center gap-2">🧪 Buffer Calculator</h2></div><div class="space-y-4"><div><label class="block text-sm font-bold mb-1">Preset Buffers</label><select id="calc-buf-preset" onchange="loadBufferPreset()" class="w-full border border-slate-300 rounded p-2 bg-white"><option value="">-- Custom --</option><option value="Ni-NTA Lysis">Lysis Buffer (Ni-NTA)</option><option value="Ni-NTA Wash">Wash Buffer (Ni-NTA)</option><option value="GST Lysis">Lysis Buffer (GST)</option><option value="GST Wash">Wash Buffer (GST)</option><option value="GST Elution">GST Elution Buffer</option></select></div><div id="calc-buf-note" class="text-xs text-amber-700 bg-amber-50 p-2 rounded hidden border border-amber-200"></div><div><label class="block text-sm font-bold mb-1">Target Buffer Volume (mL)</label><input type="number" id="calc-buf-vol" value="50" oninput="calcBuffer()" class="w-full border border-slate-300 rounded p-2"></div><div class="overflow-x-auto"><table class="w-full text-left text-sm whitespace-nowrap"><thead class="bg-slate-50 border-b border-slate-200 text-slate-500"><tr><th class="p-2">Reagent</th><th class="p-2">Stock</th><th class="p-2">Target</th><th class="p-2 text-right">Add</th></tr></thead><tbody id="calc-buf-tbody" class="divide-y divide-slate-100"></tbody></table></div><div class="flex gap-2 mt-4"><button onclick="addBufferRow()" class="bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-bold py-1 px-3 rounded transition-colors">+ Row</button><button onclick="calcBuffer()" class="flex-grow bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-1 px-3 rounded shadow-sm transition-colors">Calculate</button></div></div></div>
+
+          <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 flex flex-col justify-between">
+            <div>
+              <div class="border-b border-slate-100 pb-4 mb-4">
+                <h2 class="text-xl font-bold text-slate-800 flex items-center gap-2">🧬 Percent Bound Calculator</h2>
+              </div>
+              <div class="space-y-3">
+                <div class="grid grid-cols-2 gap-2">
+                  <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase">Protein A Name</label>
+                    <input type="text" id="calc-bound-name-a" value="Protein A" class="w-full border border-slate-300 rounded p-1.5 text-xs focus:ring-2 focus:ring-indigo-500" oninput="calcPercentBound()">
+                  </div>
+                  <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase">Protein B Name</label>
+                    <input type="text" id="calc-bound-name-b" value="Protein B" class="w-full border border-slate-300 rounded p-1.5 text-xs focus:ring-2 focus:ring-indigo-500" oninput="calcPercentBound()">
+                  </div>
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                  <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase">Protein A Conc</label>
+                    <div class="flex gap-1 mt-0.5">
+                      <input type="number" id="calc-bound-conc-a" placeholder="Conc A" class="w-full border border-slate-300 rounded p-1.5 text-xs" oninput="calcPercentBound()">
+                      <select id="calc-bound-unit-a" class="border border-slate-300 rounded p-1.5 text-xs bg-white" onchange="calcPercentBound()">
+                        <option value="nM">nM</option>
+                        <option value="µM" selected>µM</option>
+                        <option value="mM">mM</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase">Protein B Conc</label>
+                    <div class="flex gap-1 mt-0.5">
+                      <input type="number" id="calc-bound-conc-b" placeholder="Conc B" class="w-full border border-slate-300 rounded p-1.5 text-xs" oninput="calcPercentBound()">
+                      <select id="calc-bound-unit-b" class="border border-slate-300 rounded p-1.5 text-xs bg-white" onchange="calcPercentBound()">
+                        <option value="nM">nM</option>
+                        <option value="µM" selected>µM</option>
+                        <option value="mM">mM</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+                <div>
+                  <label class="block text-xs font-bold text-slate-500 uppercase">Kd (Dissociation Constant)</label>
+                  <div class="flex gap-1 mt-0.5">
+                    <input type="number" id="calc-bound-kd" placeholder="Kd" class="w-full border border-slate-300 rounded p-1.5 text-xs" oninput="calcPercentBound()">
+                    <select id="calc-bound-unit-kd" class="border border-slate-300 rounded p-1.5 text-xs bg-white" onchange="calcPercentBound()">
+                      <option value="nM" selected>nM</option>
+                      <option value="µM">µM</option>
+                      <option value="mM">mM</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div id="calc-bound-result" class="bg-slate-50 p-4 rounded text-center border border-slate-200 mt-4 min-h-[90px] flex flex-col justify-center">
+              <span class="text-slate-400 text-sm">Enter concentrations and Kd above.</span>
+            </div>
+          </div>
+
+          <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 flex flex-col justify-between">
+            <div>
+              <div class="border-b border-slate-100 pb-4 mb-4">
+                <h2 class="text-xl font-bold text-slate-800 flex items-center gap-2">📊 KinTek txt Converter</h2>
+              </div>
+              <div class="space-y-3">
+                <p class="text-xs text-slate-500">Converts duplicate/triplicate replicate data sheets (.txt or .xlsx) into single-column formatted output for KinTek Explorer.</p>
+                <div class="grid grid-cols-2 gap-2">
+                  <div>
+                    <label class="block text-[10px] font-bold text-slate-500 uppercase">Number of Replicates (n)</label>
+                    <input type="number" id="kintek-reps-input" value="3" min="1" class="w-full border border-slate-300 rounded p-1.5 text-xs mt-0.5 focus:ring-2 focus:ring-indigo-500">
+                  </div>
+                  <div>
+                    <label class="block text-[10px] font-bold text-slate-500 uppercase">Select File (.txt / .xlsx)</label>
+                    <input type="file" id="kintek-file-input" accept=".txt,.xlsx" class="w-full border border-slate-300 rounded p-1 text-xs mt-0.5 bg-white">
+                  </div>
+                </div>
+                <button onclick="convertKinTekFile()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 rounded text-xs transition-colors shadow-sm mt-3">Convert Data</button>
+              </div>
+            </div>
+            <div class="mt-4 space-y-3">
+              <div id="kintek-result-msg" class="text-center text-xs"></div>
+              <div class="text-center">
+                <a id="kintek-download-link" class="hidden inline-block bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-1.5 px-4 rounded text-xs shadow-sm transition-colors">⬇ Download Converted File</a>
+              </div>
+            </div>
+          </div>
+
+</div></div>
+
+    <div id="view-archive" class="hidden bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+      <div class="flex justify-between items-end mb-4 border-b border-slate-100 pb-4">
+        <div>
+          <h2 class="text-2xl font-bold text-slate-800">Order Archive</h2>
+          <p class="text-sm text-slate-500">Orders placed or received more than 30 days ago.</p>
+        </div>
+        <input type="search" id="archive-search" placeholder="Filter archive..." class="w-64 border border-slate-300 rounded p-2 focus:ring-2 focus:ring-cyan-500">
+      </div>
+      <div class="overflow-x-auto overflow-y-auto max-h-[600px] table-scroll border border-slate-100 rounded">
+        <table class="w-full text-left text-sm whitespace-nowrap">
+          <thead class="bg-slate-50 sticky top-0 z-10 border-b border-slate-200 text-slate-500">
+            <tr>
+              <th class="p-3">Item Name</th>
+              <th class="p-3">Mfr / Cat #</th>
+              <th class="p-3">Ordered</th>
+              <th class="p-3">Qty/Cost</th>
+              <th class="p-3">Tracking</th>
+              <th class="p-3 text-right">Status</th>
+            </tr>
+          </thead>
+          <tbody id="archive-tbody" class="divide-y divide-slate-100"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div id="view-common" class="hidden space-y-6">
+      <div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
+        <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 flex flex-col min-h-[500px]">
+          <div class="border-b border-slate-100 pb-4 mb-4 flex justify-between items-center">
+            <h2 class="text-xl font-bold text-slate-800 flex items-center gap-2">🧬 PCR Protocols</h2>
+            <button onclick="savePcrProtocol()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-1 px-3 text-xs rounded transition-colors shadow-sm">Save</button>
+          </div>
+          <div class="space-y-3 flex-grow overflow-y-auto table-scroll pr-1">
+            <div>
+              <label class="block text-xs font-bold text-slate-500 uppercase">Protocol Name</label>
+              <input type="text" id="pcr-name" placeholder="e.g. Q5 GC Rich" class="w-full border border-slate-300 rounded p-2 text-sm mt-1 focus:ring-2 focus:ring-indigo-500">
+            </div>
+            <div class="grid grid-cols-2 gap-2 mt-2">
+              <div>
+                <label class="block text-[10px] font-bold text-slate-500 uppercase">Saved Protocols</label>
+                <select id="pcr-saved-select" onchange="loadPcrProtocol(this.value)" class="w-full border border-slate-300 rounded p-1.5 text-xs bg-white mt-1">
+                  <option value="">-- Load Protocol --</option>
+                </select>
+              </div>
+              <div class="flex items-end justify-end">
+                <button onclick="deletePcrProtocol()" class="w-full bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 py-1.5 px-3 rounded text-xs transition-colors font-bold">Delete</button>
+              </div>
+            </div>
+            <div class="border-t border-slate-100 pt-3 space-y-2.5">
+              <div class="flex justify-between items-center gap-2">
+                <span class="text-xs font-semibold text-slate-700 w-1/3">1. Initial Denat.</span>
+                <input type="number" id="pcr-temp-1" value="98" class="w-16 border border-slate-300 rounded p-1 text-xs text-center focus:ring-2 focus:ring-indigo-500">
+                <span class="text-slate-400 text-xs">°C</span>
+                <input type="text" id="pcr-time-1" value="0:30" class="w-20 border border-slate-300 rounded p-1 text-xs text-center focus:ring-2 focus:ring-indigo-500">
+              </div>
+              <div class="flex justify-between items-center gap-2">
+                <span class="text-xs font-semibold text-slate-700 w-1/3">2. Denaturation</span>
+                <input type="number" id="pcr-temp-2" value="98" class="w-16 border border-slate-300 rounded p-1 text-xs text-center">
+                <span class="text-slate-400 text-xs">°C</span>
+                <input type="text" id="pcr-time-2" value="0:10" class="w-20 border border-slate-300 rounded p-1 text-xs text-center">
+              </div>
+              <div class="flex justify-between items-center gap-2">
+                <span class="text-xs font-semibold text-slate-700 w-1/3">3. Annealing</span>
+                <input type="number" id="pcr-temp-3" value="55" class="w-16 border border-slate-300 rounded p-1 text-xs text-center">
+                <span class="text-slate-400 text-xs">°C</span>
+                <input type="text" id="pcr-time-3" value="0:30" class="w-20 border border-slate-300 rounded p-1 text-xs text-center">
+              </div>
+              <div class="flex justify-between items-center gap-2">
+                <span class="text-xs font-semibold text-slate-700 w-1/3">4. Extension</span>
+                <input type="number" id="pcr-temp-4" value="72" class="w-16 border border-slate-300 rounded p-1 text-xs text-center">
+                <span class="text-slate-400 text-xs">°C</span>
+                <input type="text" id="pcr-time-4" value="1:00" class="w-20 border border-slate-300 rounded p-1 text-xs text-center">
+              </div>
+              <div class="flex justify-between items-center gap-2">
+                <span class="text-xs font-semibold text-slate-700 w-1/3">5. Final Ext.</span>
+                <input type="number" id="pcr-temp-5" value="72" class="w-16 border border-slate-300 rounded p-1 text-xs text-center">
+                <span class="text-slate-400 text-xs">°C</span>
+                <input type="text" id="pcr-time-5" value="5:00" class="w-20 border border-slate-300 rounded p-1 text-xs text-center">
+              </div>
+              <div class="flex justify-between items-center gap-2">
+                <span class="text-xs font-semibold text-slate-700 w-1/3">6. Final Hold</span>
+                <input type="number" id="pcr-temp-6" value="4" class="w-16 border border-slate-300 rounded p-1 text-xs text-center">
+                <span class="text-slate-400 text-xs">°C</span>
+                <input type="text" id="pcr-time-6" value="indefinitely" class="w-20 border border-slate-300 rounded p-1 text-xs text-center">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 flex flex-col min-h-[500px]">
+          <div class="border-b border-slate-100 pb-4 mb-4 flex justify-between items-center">
+            <h2 class="text-xl font-bold text-slate-800 flex items-center gap-2">🧪 Proteins & Dyes</h2>
+            <div class="flex gap-1">
+              <button onclick="saveCommonItem('protein')" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-1 px-2.5 text-xs rounded shadow-sm transition-colors">+ Protein</button>
+              <button onclick="saveCommonItem('dye')" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-1 px-2.5 text-xs rounded shadow-sm transition-colors">+ Dye</button>
+            </div>
+          </div>
+          <div class="space-y-4 flex-grow overflow-y-auto table-scroll pr-1">
+            <div class="bg-slate-50 p-3 rounded-lg border border-slate-200 text-xs space-y-2">
+              <div class="font-bold text-slate-700">Add/Update Protein or Dye</div>
+              <div class="grid grid-cols-2 gap-2">
+                <div>
+                  <label class="block font-bold text-slate-500 uppercase">Type</label>
+                  <select id="common-item-type" onchange="toggleCommonFields(this.value)" class="w-full border border-slate-300 rounded p-1 bg-white mt-0.5">
+                    <option value="protein">Protein</option>
+                    <option value="dye">Dye</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="block font-bold text-slate-500 uppercase">Name</label>
+                  <input type="text" id="common-item-name" placeholder="e.g. Ubiquitin" class="w-full border border-slate-300 rounded p-1 mt-0.5">
+                </div>
+              </div>
+              <div class="grid grid-cols-2 gap-2">
+                <div>
+                  <label class="block font-bold text-slate-500 uppercase">Ext. Coeff (M⁻¹cm⁻¹)</label>
+                  <input type="number" id="common-item-coeff" placeholder="e.g. 1490" class="w-full border border-slate-300 rounded p-1 mt-0.5">
+                </div>
+                <div id="common-field-uniprot">
+                  <label class="block font-bold text-slate-500 uppercase">UniProt Link (URL)</label>
+                  <input type="url" id="common-item-uniprot" placeholder="https://uniprot.org/..." class="w-full border border-slate-300 rounded p-1 mt-0.5">
+                </div>
+              </div>
+              <div id="common-field-protein-extra" class="space-y-2">
+                <div>
+                  <label class="block font-bold text-slate-500 uppercase">Affinity Tags</label>
+                  <div class="flex flex-wrap gap-x-3 gap-y-1 mt-1 text-[11px]">
+                    <label class="flex items-center gap-1"><input type="checkbox" name="common-tags" value="His-tag"> His</label>
+                    <label class="flex items-center gap-1"><input type="checkbox" name="common-tags" value="GST tag"> GST</label>
+                    <label class="flex items-center gap-1"><input type="checkbox" name="common-tags" value="Strep tag"> Strep</label>
+                    <label class="flex items-center gap-1"><input type="checkbox" name="common-tags" value="FLAG tag"> FLAG</label>
+                    <label class="flex items-center gap-1"><input type="checkbox" name="common-tags" value="HA tag"> HA</label>
+                    <label class="flex items-center gap-1"><input type="checkbox" name="common-tags" value="Myc tag"> Myc</label>
+                  </div>
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                  <div>
+                    <label class="block font-bold text-slate-500 uppercase">SEC Column</label>
+                    <select id="common-item-sec" class="w-full border border-slate-300 rounded p-1 bg-white mt-0.5">
+                      <option value="SD75">SD75</option>
+                      <option value="SD200" selected>SD200</option>
+                      <option value="SUP6">SUP6</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label class="block font-bold text-slate-500 uppercase">SEC Fraction #</label>
+                    <input type="text" id="common-item-fraction" placeholder="e.g. B12" class="w-full border border-slate-300 rounded p-1 mt-0.5">
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="border-t border-slate-100 pt-3">
+              <div class="font-bold text-xs text-slate-500 mb-2 uppercase">Saved Items</div>
+              <div id="common-items-list" class="space-y-2 max-h-48 overflow-y-auto pr-1 text-xs"></div>
+            </div>
+            
+            <div id="freezer-lookup-box" class="hidden bg-slate-50 border border-slate-200 rounded-lg p-3 text-xs space-y-1.5 relative">
+              <button type="button" onclick="this.parentNode.classList.add('hidden')" class="absolute top-1.5 right-1.5 text-slate-400 hover:text-slate-600 font-bold">&times;</button>
+              <div class="font-bold text-slate-700 flex items-center gap-1">❄️ Freezer Trays for: <span id="lookup-protein-name" class="text-indigo-600"></span></div>
+              <div id="lookup-results-list" class="space-y-1 max-h-24 overflow-y-auto pr-1"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 flex flex-col min-h-[500px]">
+          <div class="border-b border-slate-100 pb-4 mb-4">
+            <h2 class="text-xl font-bold text-slate-800 flex items-center gap-2">📖 Common Recipes</h2>
+          </div>
+          <div class="space-y-3 flex-grow overflow-y-auto table-scroll pr-1 text-xs">
+            <div>
+              <label class="block font-bold text-slate-500 uppercase">Chemical Preset</label>
+              <select id="recipe-preset" onchange="loadRecipePreset(this.value)" class="w-full border border-slate-300 rounded p-2 bg-white mt-1 text-sm">
+                <option value="custom">-- Custom / Other --</option>
+                <option value="Tris">Tris (MW 121.14)</option>
+                <option value="NaCl">NaCl (MW 58.44)</option>
+                <option value="HEPES">HEPES (MW 238.30)</option>
+                <option value="DTT">DTT (MW 154.25)</option>
+                <option value="MES">MES (MW 195.2)</option>
+                <option value="Bis-Tris Propane">Bis-Tris Propane (MW 282.3)</option>
+                <option value="ZnCl2">ZnCl2 (MW 136.3)</option>
+                <option value="NaOH">NaOH (MW 40.00)</option>
+                <option value="SDS">SDS (Sodium Dodecyl Sulfate) (MW 288.38)</option>
+              </select>
+            </div>
+            
+            <div class="grid grid-cols-2 gap-2">
+              <div>
+                <label class="block font-bold text-slate-500 uppercase">Chemical Name</label>
+                <input type="text" id="recipe-name" placeholder="Chemical Name" class="w-full border border-slate-300 rounded p-1.5 mt-1" oninput="calcRecipe()">
+              </div>
+              <div>
+                <label class="block font-bold text-slate-500 uppercase">Molecular Weight (g/mol)</label>
+                <input type="number" step="any" id="recipe-mw" placeholder="MW" class="w-full border border-slate-300 rounded p-1.5 mt-1" oninput="calcRecipe()">
+              </div>
+            </div>
+            
+            <div class="grid grid-cols-2 gap-2">
+              <div>
+                <label class="block font-bold text-slate-500 uppercase">Target Concentration</label>
+                <div class="flex gap-1 mt-1">
+                  <input type="number" step="any" id="recipe-conc" value="100" placeholder="Conc" class="w-full border border-slate-300 rounded p-1" oninput="calcRecipe()">
+                  <select id="recipe-conc-unit" class="border border-slate-300 rounded p-1 bg-white" onchange="calcRecipe()">
+                    <option value="mM" selected>mM</option>
+                    <option value="M">M</option>
+                  </select>
+                </div>
+              </div>
+              <div>
+                <label class="block font-bold text-slate-500 uppercase">Target Volume</label>
+                <div class="flex gap-1 mt-1">
+                  <input type="number" step="any" id="recipe-vol" value="100" placeholder="Vol" class="w-full border border-slate-300 rounded p-1" oninput="calcRecipe()">
+                  <select id="recipe-vol-unit" class="border border-slate-300 rounded p-1 bg-white" onchange="calcRecipe()">
+                    <option value="mL" selected>mL</option>
+                    <option value="L">L</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+            
+            <div id="recipe-result" class="bg-indigo-50 border border-indigo-100 rounded-lg p-4 text-center mt-4 min-h-[90px] flex flex-col justify-center">
+              <span class="text-slate-400">Enter recipe parameters above.</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   </main>
 
   <!-- MODALS -->
@@ -66,6 +383,7 @@
     let inventory = [], glycerolInventory = [], team = [], trayOwners = {}, cellCultures = [], viruses = [], orders = [], orderRequests = [], plannedSplits = [];
     let primerData = [], dnaData = [], chemData = [], shipData = [];
     let unlvAccount = "";
+    let commonProtocols = [], commonProteins = [], commonDyes = [];
     let glycMap = { 'B13-1':'1','B13-2':'2','B13-3':'3','B13-4':'4','C13-1':'5','C13-2':'6','C13-3':'7','C13-4':'8','C14-1':'9','C14-2':'10','C14-3':'11','C14-4':'12' };
     let current = { tray: null, boxNum: null, boxName: null, pillboxNum: null, pillboxName: null, pillboxDate: null, entryNum: null, glycSlotNum: null, glycBoxId: null };
     let currentPlanCell = null, currentPlanMode = 'date';
@@ -79,12 +397,16 @@
         if (result.status !== 'success') throw new Error(result.message);
 
         team = []; trayOwners = {}; unlvAccount = "";
+        commonProtocols = []; commonProteins = []; commonDyes = [];
         if (result.settings) {
           result.settings.forEach(row => {
             if (row[0] === 'User') team.push({ name: String(row[1]).trim(), color: String(row[2]).trim() });
             if (row[0] === 'Tray') trayOwners[String(row[1]).trim()] = String(row[2]).trim();
             if (row[0] === 'GlycMap') { if (row[2] === "") delete glycMap[row[1]]; else glycMap[row[1]] = String(row[2]).trim(); }
             if (row[0] === 'Account' && row[1] === 'UNLV') unlvAccount = String(row[2]).trim();
+            if (row[0] === 'PCR') { try { commonProtocols.push({ name: String(row[1]).trim(), steps: JSON.parse(row[2]) }); } catch(e){} }
+            if (row[0] === 'CommonProtein') { try { commonProteins.push({ name: String(row[1]).trim(), data: JSON.parse(row[2]) }); } catch(e){} }
+            if (row[0] === 'CommonDye') { try { commonDyes.push({ name: String(row[1]).trim(), data: JSON.parse(row[2]) }); } catch(e){} }
           });
         }
         
@@ -105,15 +427,17 @@
     }
 
     function switchTab(tab) {
-      ['view-freezer', 'view-global', 'view-bio', 'view-ordering', 'view-dna', 'view-chem', 'view-calc'].forEach(id => { let el = document.getElementById(id); if(el) el.classList.add('hidden'); });
-      ['tab-freezer', 'tab-global', 'tab-bio', 'tab-ordering', 'tab-dna', 'tab-chem', 'tab-calc'].forEach(id => { let el = document.getElementById(id); if(el) el.className = "px-2 py-1.5 rounded font-bold text-sm text-cyan-200 hover:bg-cyan-800 transition-colors"; });
+      ['view-freezer', 'view-global', 'view-bio', 'view-ordering', 'view-dna', 'view-chem', 'view-calc', 'view-archive', 'view-common'].forEach(id => { let el = document.getElementById(id); if(el) el.classList.add('hidden'); });
+      ['tab-freezer', 'tab-global', 'tab-bio', 'tab-ordering', 'tab-dna', 'tab-chem', 'tab-calc', 'tab-archive', 'tab-common'].forEach(id => { let el = document.getElementById(id); if(el) el.className = "px-2 py-1.5 rounded font-bold text-sm text-cyan-200 hover:bg-cyan-800 transition-colors"; });
       if(tab === 'freezer') { document.getElementById('tab-freezer').classList.add('bg-cyan-700', 'text-white'); document.getElementById('view-freezer').classList.remove('hidden'); showScreen('screen-master-grid'); renderFreezer(); }
       if(tab === 'global') { document.getElementById('tab-global').classList.add('bg-cyan-700', 'text-white'); document.getElementById('view-global').classList.remove('hidden'); renderGlobalInventory(); }
       if(tab === 'bio') { document.getElementById('tab-bio').classList.add('bg-cyan-700', 'text-white'); document.getElementById('view-bio').classList.remove('hidden'); renderBio(); }
       if(tab === 'dna') { document.getElementById('tab-dna').classList.add('bg-cyan-700', 'text-white'); document.getElementById('view-dna').classList.remove('hidden'); renderDna(); }
       if(tab === 'chem') { document.getElementById('tab-chem').classList.add('bg-cyan-700', 'text-white'); document.getElementById('view-chem').classList.remove('hidden'); renderChem(); }
       if(tab === 'ordering') { document.getElementById('tab-ordering').classList.add('bg-cyan-700', 'text-white'); document.getElementById('view-ordering').classList.remove('hidden'); renderOrdering(); }
+      if(tab === 'archive') { document.getElementById('tab-archive').classList.add('bg-cyan-700', 'text-white'); document.getElementById('view-archive').classList.remove('hidden'); renderArchive(); }
       if(tab === 'calc') { document.getElementById('tab-calc').classList.add('bg-cyan-700', 'text-white'); document.getElementById('view-calc').classList.remove('hidden'); }
+      if(tab === 'common') { document.getElementById('tab-common').classList.add('bg-cyan-700', 'text-white'); document.getElementById('view-common').classList.remove('hidden'); renderCommon(); }
     }
 
     function showScreen(screenId) { ['screen-master-grid', 'screen-box-detail', 'screen-glyc-detail', 'screen-column-detail'].forEach(id => document.getElementById(id).classList.add('hidden')); document.getElementById(screenId).classList.remove('hidden'); }
@@ -269,8 +593,8 @@
     function renderOrdering() {
       document.getElementById('input-unlv-account').value = unlvAccount;
       let shipHtml = ''; shipData.forEach(s => { let sdsBtn = s.sds ? `<a href="${s.sds}" download="${s.name}_SDS" class="mt-2 text-[10px] bg-emerald-100 text-emerald-800 px-2 py-1 rounded inline-block font-bold">📄 View SDS</a>` : ''; shipHtml += `<div class="bg-white border border-slate-200 p-4 rounded-xl shadow-sm min-w-[250px] shrink-0"><h3 class="font-bold text-slate-800 text-sm border-b pb-1 mb-2">${s.name}</h3><p class="text-xs text-slate-600 mb-1">${s.address}<br>${s.city}, ${s.state} ${s.zip}<br>${s.country}</p><p class="text-xs text-slate-500 mt-2"><strong>Attn:</strong> ${s.contact}<br><strong>Ph:</strong> ${s.phone}</p>${sdsBtn}</div>`; }); document.getElementById('shipping-container').innerHTML = shipHtml || `<div class="text-xs text-slate-400 italic py-4">No shipping addresses saved.</div>`;
-      const reqContainer = document.getElementById('requests-container'); let reqHtml = ''; let activeRequests = orderRequests.filter(req => { if (req.status === 'Denied' || req.status === 'Hold') { return ((Date.now() - new Date(req.timestamp).getTime()) / (1000 * 3600 * 24)) <= 7; } return true; }); if(activeRequests.length === 0) { reqHtml = `<div class="text-center text-slate-400 py-10 text-sm">No active requests.</div>`; } else { activeRequests.forEach(req => { let badgeColor = "bg-slate-100 text-slate-600"; if(req.status === 'Approved') badgeColor = "bg-emerald-100 text-emerald-700"; if(req.status === 'Denied') badgeColor = "bg-red-100 text-red-700"; if(req.status === 'Hold') badgeColor = "bg-amber-100 text-amber-700"; reqHtml += `<div class="border border-slate-200 rounded-xl p-4 shadow-sm relative group hover:border-indigo-200 transition-colors"><div class="flex justify-between items-start mb-2"><div><h3 class="font-bold text-slate-800 text-sm">${req.name}</h3><p class="text-[11px] text-slate-500 uppercase tracking-wide font-medium">${req.mfr}</p></div><span class="text-[10px] font-bold px-2 py-0.5 rounded uppercase ${badgeColor}">${req.status}</span></div><p class="text-xs text-slate-600 mb-2 border-l-2 border-slate-200 pl-2">"${req.reason}"</p><div class="flex justify-between items-center mb-3"><span class="text-xs font-bold text-slate-700">Est. Cost: <span class="font-medium text-emerald-600">${req.cost}</span></span><a href="${req.link}" target="_blank" class="text-xs text-blue-500 hover:underline">Link &rarr;</a></div><div class="flex items-center justify-between mt-3 pt-3 border-t border-slate-100"><div class="flex gap-1"><button onclick="updateRequestStatus('${req.id}', 'Approved')" class="text-[10px] font-bold uppercase bg-slate-100 text-slate-600 hover:bg-emerald-100 hover:text-emerald-700 px-2 py-1 rounded transition-colors">Approve</button><button onclick="updateRequestStatus('${req.id}', 'Hold')" class="text-[10px] font-bold uppercase bg-slate-100 text-slate-600 hover:bg-amber-100 hover:text-amber-700 px-2 py-1 rounded transition-colors">Hold</button><button onclick="updateRequestStatus('${req.id}', 'Denied')" class="text-[10px] font-bold uppercase bg-slate-100 text-slate-600 hover:bg-red-100 hover:text-red-700 px-2 py-1 rounded transition-colors">Deny</button></div><button onclick="openComments('${req.id}')" class="text-xs font-bold text-slate-500 hover:text-indigo-600 flex items-center gap-1 transition-colors">💬 ${req.comments.length > 0 ? `<span class="text-red-500 text-[10px] bg-red-100 px-1 rounded-full animate-pulse">(!) ${req.comments.length}</span>` : 'Comment'}</button></div></div>`; }); } reqContainer.innerHTML = reqHtml;
-      const ordTbody = document.getElementById('orders-tbody'); let ordHtml = ''; if(orders.length === 0) { ordHtml = `<tr><td colspan="6" class="p-3 text-center text-slate-400 text-sm">No orders logged.</td></tr>`; } else { orders.forEach(o => { let actionHtml = o.receiver ? `<div class="text-[11px] text-emerald-700 bg-emerald-50 border border-emerald-200 p-1.5 rounded text-left inline-block"><b>✔ Received</b> by ${o.receiver} on ${o.receivedDate}<br><span class="text-slate-500">Loc: ${o.storageLoc}</span></div>` : `<button onclick="openReceiveOrderModal('${o.id}')" class="text-[10px] font-bold uppercase bg-indigo-50 text-indigo-600 hover:bg-indigo-100 px-3 py-1.5 rounded transition-colors shadow-sm">Mark Received</button>`; ordHtml += `<tr class="hover:bg-slate-50 transition-colors"><td class="p-3 font-bold text-slate-800 text-sm">${o.name}</td><td class="p-3 text-xs text-slate-600"><span class="font-medium text-slate-700">${o.mfr}</span><br>${o.cat || 'N/A'}</td><td class="p-3 text-xs text-slate-500">${o.date}</td><td class="p-3 text-xs text-slate-600">Qty: ${o.qty || '-'} <br> <span class="text-emerald-600 font-medium">${o.cost || '-'}</span></td><td class="p-3 text-xs text-blue-500 truncate max-w-[120px] font-mono" title="${o.track}">${o.track || 'N/A'}</td><td class="p-3 text-right">${actionHtml}</td></tr>`; }); } ordTbody.innerHTML = ordHtml;
+      const reqContainer = document.getElementById('requests-container'); let reqHtml = ''; let activeRequests = orderRequests.filter(req => { if (req.status === 'Denied' || req.status === 'Hold') { return ((Date.now() - new Date(req.timestamp).getTime()) / (1000 * 3600 * 24)) <= 7; } return true; }); if(activeRequests.length === 0) { reqHtml = `<div class="text-center text-slate-400 py-10 text-sm">No active requests.</div>`; } else { activeRequests.forEach(req => { let badgeColor = "bg-slate-100 text-slate-600"; if(req.status === 'Approved') badgeColor = "bg-emerald-100 text-emerald-700"; if(req.status === 'Denied') badgeColor = "bg-red-100 text-red-700"; if(req.status === 'Hold') badgeColor = "bg-amber-100 text-amber-700"; reqHtml += `<div class="border border-slate-200 rounded-xl p-4 shadow-sm relative group hover:border-indigo-200 transition-colors"><button onclick="deleteOrderRequest('${req.id}')" class="absolute top-2 right-2 text-xs text-red-400 hover:text-red-600 opacity-0 group-hover:opacity-100 transition-opacity">🗑️ Del</button><div class="flex justify-between items-start mb-2"><div><h3 class="font-bold text-slate-800 text-sm">${req.name}</h3><p class="text-[11px] text-slate-500 uppercase tracking-wide font-medium">${req.mfr}</p></div><span class="text-[10px] font-bold px-2 py-0.5 rounded uppercase ${badgeColor}">${req.status}</span></div><p class="text-xs text-slate-600 mb-2 border-l-2 border-slate-200 pl-2">"${req.reason}"</p><div class="flex justify-between items-center mb-3"><span class="text-xs font-bold text-slate-700">Est. Cost: <span class="font-medium text-emerald-600">${req.cost}</span></span><a href="${req.link}" target="_blank" class="text-xs text-blue-500 hover:underline">Link &rarr;</a></div><div class="flex items-center justify-between mt-3 pt-3 border-t border-slate-100"><div class="flex gap-1"><button onclick="updateRequestStatus('${req.id}', 'Approved')" class="text-[10px] font-bold uppercase bg-slate-100 text-slate-600 hover:bg-emerald-100 hover:text-emerald-700 px-2 py-1 rounded transition-colors">Approve</button><button onclick="updateRequestStatus('${req.id}', 'Hold')" class="text-[10px] font-bold uppercase bg-slate-100 text-slate-600 hover:bg-amber-100 hover:text-amber-700 px-2 py-1 rounded transition-colors">Hold</button><button onclick="updateRequestStatus('${req.id}', 'Denied')" class="text-[10px] font-bold uppercase bg-slate-100 text-slate-600 hover:bg-red-100 hover:text-red-700 px-2 py-1 rounded transition-colors">Deny</button></div><button onclick="openComments('${req.id}')" class="text-xs font-bold text-slate-500 hover:text-indigo-600 flex items-center gap-1 transition-colors">💬 ${req.comments.length > 0 ? `<span class="text-red-500 text-[10px] bg-red-100 px-1 rounded-full animate-pulse">(!) ${req.comments.length}</span>` : 'Comment'}</button></div></div>`; }); } reqContainer.innerHTML = reqHtml;
+      const ordTbody = document.getElementById('orders-tbody'); let ordHtml = ''; const activeOrders = orders.filter(isOrderActive); if(activeOrders.length === 0) { ordHtml = `<tr><td colspan="6" class="p-3 text-center text-slate-400 text-sm">No recent orders logged.</td></tr>`; } else { activeOrders.forEach(o => { let actionHtml = o.receiver ? `<div class="text-[11px] text-emerald-700 bg-emerald-50 border border-emerald-200 p-1.5 rounded text-left inline-block"><b>✔ Received</b> by ${o.receiver} on ${o.receivedDate}<br><span class="text-slate-500">Loc: ${o.storageLoc}</span></div>` : `<button onclick="openReceiveOrderModal('${o.id}')" class="text-[10px] font-bold uppercase bg-indigo-50 text-indigo-600 hover:bg-indigo-100 px-3 py-1.5 rounded transition-colors shadow-sm">Mark Received</button>`; ordHtml += `<tr class="hover:bg-slate-50 transition-colors"><td class="p-3 font-bold text-slate-800 text-sm">${o.name}</td><td class="p-3 text-xs text-slate-600"><span class="font-medium text-slate-700">${o.mfr}</span><br>${o.cat || 'N/A'}</td><td class="p-3 text-xs text-slate-500">${o.date}</td><td class="p-3 text-xs text-slate-600">Qty: ${o.qty || '-'} <br> <span class="text-emerald-600 font-medium">${o.cost || '-'}</span></td><td class="p-3 text-xs text-blue-500 truncate max-w-[120px] font-mono" title="${o.track}">${o.track || 'N/A'}</td><td class="p-3 text-right">${actionHtml}</td></tr>`; }); } ordTbody.innerHTML = ordHtml;
     }
     async function saveUnlvAccount() { const val = document.getElementById('input-unlv-account').value; try { await fetch(GAS_WEB_APP_URL, { method: 'POST', body: JSON.stringify({ action: 'saveSetting', settingType: 'Account', settingKey: 'UNLV', settingValue: val }) }); alert("Saved."); unlvAccount = val; } catch(e) { alert("Failed."); } }
 
@@ -350,7 +674,579 @@
         btn.innerText = "Save"; btn.disabled = false;
       }
     }
-    
+
+    // --- ADDITIONAL HELPERS & CALCULATORS ---
+
+    function calcProteinYield() {
+      const conc = parseFloat(document.getElementById('calc-prot-conc').value) || 0;
+      const vol = parseFloat(document.getElementById('calc-prot-vol').value) || 0;
+      const mw = parseFloat(document.getElementById('calc-prot-mw').value) || 0;
+      const unit = document.getElementById('calc-prot-mw-unit').value;
+      const litersVal = parseFloat(document.getElementById('calc-prot-liters').value) || 0;
+      const resultEl = document.getElementById('calc-prot-result');
+      if (conc <= 0 || vol <= 0 || mw <= 0) {
+        resultEl.innerHTML = '<span class="text-slate-400 text-sm">Enter values above.</span>';
+        return;
+      }
+      const mwDa = unit === 'kDa' ? mw * 1000 : mw;
+      const yieldUg = conc * vol * mwDa * 1e-6;
+      const yieldMg = yieldUg / 1000;
+      let displayStr = `<div class="text-slate-800 font-medium">Total Yield: <span class="font-black text-indigo-600">${yieldUg < 1000 ? yieldUg.toFixed(2) + ' µg' : yieldMg.toFixed(2) + ' mg'}</span></div>`;
+      if (litersVal > 0) {
+        const yieldPerLiterUg = yieldUg / litersVal;
+        const yieldPerLiterMg = yieldMg / litersVal;
+        displayStr += `<div class="text-slate-500 text-xs mt-1">Yield/L: <span class="font-bold text-slate-700">${yieldPerLiterUg < 1000 ? yieldPerLiterUg.toFixed(2) + ' µg/L' : yieldPerLiterMg.toFixed(2) + ' mg/L'}</span></div>`;
+      }
+      resultEl.innerHTML = displayStr;
+    }
+
+    function addBufferRow(reagent = '', stock = '', stockUnit = 'M', target = '', targetUnit = 'mM') {
+      const tbody = document.getElementById('calc-buf-tbody');
+      const tr = document.createElement('tr');
+      tr.className = 'hover:bg-slate-50';
+      tr.innerHTML = `
+        <td class="p-2"><input type="text" value="${reagent}" placeholder="Reagent" class="buf-reagent w-full border border-slate-300 rounded p-1 text-xs"></td>
+        <td class="p-2 flex gap-1">
+          <input type="number" step="any" value="${stock}" placeholder="${stockUnit==='g'?'MW':'Stock'}" class="buf-stock w-16 border border-slate-300 rounded p-1 text-xs" oninput="calcBuffer()">
+          <select class="buf-stock-unit border border-slate-300 rounded p-1 text-xs bg-white" onchange="updateStockPlaceholder(this)">
+            <option value="M" ${stockUnit==='M'?'selected':''}>M</option>
+            <option value="mM" ${stockUnit==='mM'?'selected':''}>mM</option>
+            <option value="%" ${stockUnit==='%'?'selected':''}>%</option>
+            <option value="mg/mL" ${stockUnit==='mg/mL'?'selected':''}>mg/mL</option>
+            <option value="X" ${stockUnit==='X'?'selected':''}>X</option>
+            <option value="g" ${stockUnit==='g'?'selected':''}>g (solid)</option>
+          </select>
+        </td>
+        <td class="p-2">
+          <div class="flex gap-1">
+            <input type="number" step="any" value="${target}" placeholder="Target" class="buf-target w-16 border border-slate-300 rounded p-1 text-xs" oninput="calcBuffer()">
+            <select class="buf-target-unit border border-slate-300 rounded p-1 text-xs bg-white" onchange="calcBuffer()">
+              <option value="M" ${targetUnit==='M'?'selected':''}>M</option>
+              <option value="mM" ${targetUnit==='mM'?'selected':''}>mM</option>
+              <option value="%" ${targetUnit==='%'?'selected':''}>%</option>
+              <option value="mg/mL" ${targetUnit==='mg/mL'?'selected':''}>mg/mL</option>
+              <option value="X" ${targetUnit==='X'?'selected':''}>X</option>
+            </select>
+          </div>
+        </td>
+        <td class="p-2 text-right text-xs font-bold text-indigo-600 buf-add-result">-</td>
+        <td class="p-2 text-right"><button onclick="this.closest('tr').remove(); calcBuffer();" class="text-red-400 hover:text-red-600 font-bold text-xs">&times;</button></td>
+      `;
+      tbody.appendChild(tr);
+      calcBuffer();
+    }
+
+    function updateStockPlaceholder(select) {
+      const input = select.closest('td').querySelector('.buf-stock');
+      if (select.value === 'g') {
+        input.placeholder = 'MW (g/mol)';
+      } else {
+        input.placeholder = 'Stock';
+      }
+      calcBuffer();
+    }
+
+    function loadBufferPreset() {
+      const preset = document.getElementById('calc-buf-preset').value;
+      const tbody = document.getElementById('calc-buf-tbody');
+      tbody.innerHTML = '';
+      if (preset === 'Ni-NTA Lysis') {
+        addBufferRow('Tris-HCl pH 8.0', '1', 'M', '50', 'mM');
+        addBufferRow('NaCl', '5', 'M', '300', 'mM');
+        addBufferRow('Imidazole', '1', 'M', '10', 'mM');
+      } else if (preset === 'Ni-NTA Wash') {
+        addBufferRow('Tris-HCl pH 8.0', '1', 'M', '50', 'mM');
+        addBufferRow('NaCl', '5', 'M', '300', 'mM');
+        addBufferRow('Imidazole', '1', 'M', '20', 'mM');
+      } else if (preset === 'GST Lysis') {
+        addBufferRow('Tris-HCl pH 8.0', '1', 'M', '50', 'mM');
+        addBufferRow('NaCl', '5', 'M', '150', 'mM');
+        addBufferRow('DTT', '1', 'M', '1', 'mM');
+        addBufferRow('EDTA', '0.5', 'M', '1', 'mM');
+      } else if (preset === 'GST Wash') {
+        addBufferRow('Tris-HCl pH 8.0', '1', 'M', '50', 'mM');
+        addBufferRow('NaCl', '5', 'M', '150', 'mM');
+      } else if (preset === 'GST Elution') {
+        addBufferRow('Tris-HCl pH 8.0', '1', 'M', '50', 'mM');
+        addBufferRow('NaCl', '5', 'M', '150', 'mM');
+        addBufferRow('Reduced Glutathione', '307.33', 'g', '10', 'mM');
+      }
+    }
+
+    function calcBuffer() {
+      const volEl = document.getElementById('calc-buf-vol');
+      const bufVol = parseFloat(volEl ? volEl.value : 50) || 50;
+      const rows = document.querySelectorAll('#calc-buf-tbody tr');
+      rows.forEach(tr => {
+        const stockInput = tr.querySelector('.buf-stock');
+        const stock = parseFloat(stockInput.value) || 0;
+        const stockUnit = tr.querySelector('.buf-stock-unit').value;
+        const target = parseFloat(tr.querySelector('.buf-target').value) || 0;
+        const targetUnit = tr.querySelector('.buf-target-unit').value;
+        const resultEl = tr.querySelector('.buf-add-result');
+        if (stock <= 0 || target <= 0) {
+          resultEl.innerText = '-';
+          return;
+        }
+        if (stockUnit === 'g') {
+          let targetM = target;
+          if (targetUnit === 'mM') targetM = target / 1000;
+          else if (targetUnit === '%') {
+            const massG = (target / 100) * bufVol;
+            resultEl.innerText = `${massG.toFixed(3)} g`;
+            return;
+          }
+          const volL = bufVol / 1000;
+          const massG = targetM * volL * stock;
+          resultEl.innerText = `${massG.toFixed(3)} g`;
+        } else {
+          let stockVal = stock;
+          let targetVal = target;
+          if ((stockUnit === 'M' || stockUnit === 'mM') && (targetUnit === 'M' || targetUnit === 'mM')) {
+            const stockMM = stockUnit === 'M' ? stock * 1000 : stock;
+            const targetMM = targetUnit === 'M' ? target * 1000 : target;
+            const addVol = (targetMM * bufVol) / stockMM;
+            if (addVol >= 1) {
+              resultEl.innerText = `${addVol.toFixed(2)} mL`;
+            } else {
+              resultEl.innerText = `${(addVol * 1000).toFixed(1)} µL`;
+            }
+          } else if (stockUnit === targetUnit) {
+            const addVol = (target * bufVol) / stock;
+            if (addVol >= 1) {
+              resultEl.innerText = `${addVol.toFixed(2)} mL`;
+            } else {
+              resultEl.innerText = `${(addVol * 1000).toFixed(1)} µL`;
+            }
+          } else {
+            resultEl.innerText = 'Mismatch';
+          }
+        }
+      });
+    }
+
+    async function deleteOrderRequest(id) {
+      if(!confirm("Permanently delete this order request?")) return;
+      try {
+        await fetch(GAS_WEB_APP_URL, { method: 'POST', body: JSON.stringify({ action: 'deleteOrderRequest', id: id }) });
+        orderRequests = orderRequests.filter(req => req.id !== id);
+        renderOrdering();
+      } catch(e) {
+        alert("Failed.");
+      }
+    }
+
+    function isOrderActive(o) {
+      if (!o.receiver || o.receiver.trim() === "") return true;
+      const thirtyDaysAgo = Date.now() - 30 * 24 * 60 * 60 * 1000;
+      const orderTime = o.date ? new Date(o.date).getTime() : 0;
+      const receivedTime = o.receivedDate ? new Date(o.receivedDate).getTime() : 0;
+      return orderTime >= thirtyDaysAgo || receivedTime >= thirtyDaysAgo;
+    }
+
+    function renderArchive() {
+      const tbody = document.getElementById('archive-tbody');
+      let html = '';
+      const archivedOrders = orders.filter(o => !isOrderActive(o));
+      if(archivedOrders.length === 0) {
+        html = `<tr><td colspan="6" class="p-3 text-center text-slate-400 text-sm">No archived orders.</td></tr>`;
+      } else {
+        archivedOrders.forEach(o => {
+          let actionHtml = `<div class="text-[11px] text-slate-500 bg-slate-50 border border-slate-200 p-1.5 rounded text-left inline-block"><b>✔ Received</b> by ${o.receiver} on ${o.receivedDate}<br><span class="text-slate-400">Loc: ${o.storageLoc}</span></div>`;
+          html += `
+            <tr class="hover:bg-slate-50 transition-colors">
+              <td class="p-3 font-bold text-slate-800 text-sm">${o.name}</td>
+              <td class="p-3 text-xs text-slate-600"><span class="font-medium text-slate-700">${o.mfr}</span><br>${o.cat || 'N/A'}</td>
+              <td class="p-3 text-xs text-slate-500">${o.date}</td>
+              <td class="p-3 text-xs text-slate-600">Qty: ${o.qty || '-'} <br> <span class="text-emerald-600 font-medium">${o.cost || '-'}</span></td>
+              <td class="p-3 text-xs text-slate-500 truncate max-w-[120px] font-mono" title="${o.track}">${o.track || 'N/A'}</td>
+              <td class="p-3 text-right">${actionHtml}</td>
+            </tr>`;
+        });
+      }
+      tbody.innerHTML = html;
+    }
+
+    function calcPercentBound() {
+      const nameA = document.getElementById('calc-bound-name-a').value || 'Protein A';
+      const nameB = document.getElementById('calc-bound-name-b').value || 'Protein B';
+      const concAVal = parseFloat(document.getElementById('calc-bound-conc-a').value) || 0;
+      const unitA = document.getElementById('calc-bound-unit-a').value;
+      const concBVal = parseFloat(document.getElementById('calc-bound-conc-b').value) || 0;
+      const unitB = document.getElementById('calc-bound-unit-b').value;
+      const kdVal = parseFloat(document.getElementById('calc-bound-kd').value) || 0;
+      const unitKd = document.getElementById('calc-bound-unit-kd').value;
+      const resultEl = document.getElementById('calc-bound-result');
+      if (concAVal <= 0 || concBVal <= 0 || kdVal <= 0) {
+        resultEl.innerHTML = '<span class="text-slate-400 text-sm">Enter concentrations and Kd above.</span>';
+        return;
+      }
+      const toNm = (val, unit) => {
+        if (unit === 'mM') return val * 1000000;
+        if (unit === 'µM') return val * 1000;
+        return val;
+      };
+      const A = toNm(concAVal, unitA);
+      const B = toNm(concBVal, unitB);
+      const K = toNm(kdVal, unitKd);
+      const sum = A + B + K;
+      const boundNm = (sum - Math.sqrt(sum * sum - 4 * A * B)) / 2;
+      const pctA = (boundNm / A) * 100;
+      const pctB = (boundNm / B) * 100;
+      let boundStr = '';
+      if (boundNm >= 1000000) {
+        boundStr = `${(boundNm / 1000000).toFixed(3)} mM`;
+      } else if (boundNm >= 1000) {
+        boundStr = `${(boundNm / 1000).toFixed(3)} µM`;
+      } else {
+        boundStr = `${boundNm.toFixed(1)} nM`;
+      }
+      resultEl.innerHTML = `
+        <div class="space-y-2 text-left text-xs">
+          <div class="text-sm font-bold text-slate-800 text-center mb-2">Results</div>
+          <div class="flex justify-between border-b pb-1">
+            <span class="text-slate-500 font-medium">Bound Complex [AB]:</span>
+            <span class="font-bold text-indigo-600">${boundStr}</span>
+          </div>
+          <div class="flex justify-between border-b pb-1">
+            <span class="text-slate-500 font-medium">% ${nameA} Bound:</span>
+            <span class="font-bold text-emerald-600">${pctA.toFixed(1)}%</span>
+          </div>
+          <div class="flex justify-between pb-1">
+            <span class="text-slate-500 font-medium">% ${nameB} Bound:</span>
+            <span class="font-bold text-emerald-600">${pctB.toFixed(1)}%</span>
+          </div>
+        </div>
+      `;
+    }
+
+    async function savePcrProtocol() {
+      const name = document.getElementById('pcr-name').value.trim();
+      if(!name) { alert("Please enter a protocol name."); return; }
+      const steps = [];
+      for(let i=1; i<=6; i++) {
+        steps.push({
+          temp: document.getElementById(`pcr-temp-${i}`).value,
+          time: document.getElementById(`pcr-time-${i}`).value
+        });
+      }
+      try {
+        await fetch(GAS_WEB_APP_URL, {
+          method: 'POST',
+          body: JSON.stringify({
+            action: 'saveSetting',
+            settingType: 'PCR',
+            settingKey: name,
+            settingValue: JSON.stringify(steps)
+          })
+        });
+        const existing = commonProtocols.find(p => p.name === name);
+        if(existing) existing.steps = steps;
+        else commonProtocols.push({ name, steps });
+        alert("Protocol saved!");
+        renderCommon();
+      } catch(e) { alert("Failed to save protocol."); }
+    }
+
+    function loadPcrProtocol(name) {
+      if (!name) return;
+      const protocol = commonProtocols.find(p => p.name === name);
+      if (!protocol) return;
+      document.getElementById('pcr-name').value = protocol.name;
+      protocol.steps.forEach((step, idx) => {
+        document.getElementById(`pcr-temp-${idx+1}`).value = step.temp;
+        document.getElementById(`pcr-time-${idx+1}`).value = step.time;
+      });
+    }
+
+    async function deletePcrProtocol() {
+      const name = document.getElementById('pcr-name').value.trim();
+      if(!name) { alert("Select or enter a protocol name to delete."); return; }
+      if(!confirm(`Delete PCR protocol "${name}"?`)) return;
+      try {
+        await fetch(GAS_WEB_APP_URL, { method: 'POST', body: JSON.stringify({ action: 'deleteSetting', settingType: 'PCR', settingKey: name }) });
+        commonProtocols = commonProtocols.filter(p => p.name !== name);
+        document.getElementById('pcr-name').value = '';
+        for(let i=1; i<=6; i++) {
+          document.getElementById(`pcr-temp-${i}`).value = i===1?'98':(i===2?'98':(i===3?'55':(i===4?'72':(i===5?'72':'4'))));
+          document.getElementById(`pcr-time-${i}`).value = i===1?'0:30':(i===2?'0:10':(i===3?'0:30':(i===4?'1:00':(i===5?'5:00':'indefinitely'))));
+        }
+        alert("Protocol deleted.");
+        renderCommon();
+      } catch(e) { alert("Failed to delete protocol."); }
+    }
+
+    function toggleCommonFields(type) {
+      const extra = document.getElementById('common-field-protein-extra');
+      const uniprot = document.getElementById('common-field-uniprot');
+      if (type === 'protein') {
+        extra.classList.remove('hidden');
+        uniprot.classList.remove('hidden');
+      } else {
+        extra.classList.add('hidden');
+        uniprot.classList.add('hidden');
+      }
+    }
+
+    async function saveCommonItem(type) {
+      const name = document.getElementById('common-item-name').value.trim();
+      const coeff = parseFloat(document.getElementById('common-item-coeff').value) || 0;
+      if (!name || coeff <= 0) { alert("Please fill in Name and Extinction Coefficient."); return; }
+      let data = {};
+      let settingType = '';
+      if (type === 'protein') {
+        settingType = 'CommonProtein';
+        const uniprot = document.getElementById('common-item-uniprot').value.trim();
+        const sec = document.getElementById('common-item-sec').value;
+        const fraction = document.getElementById('common-item-fraction').value.trim();
+        const tags = [];
+        document.querySelectorAll('input[name="common-tags"]:checked').forEach(cb => { tags.push(cb.value); });
+        data = { coeff, uniprot, sec, fraction, tags };
+      } else {
+        settingType = 'CommonDye';
+        data = { coeff };
+      }
+      try {
+        await fetch(GAS_WEB_APP_URL, {
+          method: 'POST',
+          body: JSON.stringify({
+            action: 'saveSetting',
+            settingType: settingType,
+            settingKey: name,
+            settingValue: JSON.stringify(data)
+          })
+        });
+        if (type === 'protein') {
+          const existing = commonProteins.find(p => p.name === name);
+          if (existing) existing.data = data;
+          else commonProteins.push({ name, data });
+        } else {
+          const existing = commonDyes.find(d => d.name === name);
+          if (existing) existing.data = data;
+          else commonDyes.push({ name, data });
+        }
+        alert("Item saved!");
+        document.getElementById('common-item-name').value = '';
+        document.getElementById('common-item-coeff').value = '';
+        if (type === 'protein') {
+          document.getElementById('common-item-uniprot').value = '';
+          document.getElementById('common-item-fraction').value = '';
+          document.querySelectorAll('input[name="common-tags"]:checked').forEach(cb => cb.checked = false);
+        }
+        renderCommon();
+      } catch(e) { alert("Failed to save item."); }
+    }
+
+    async function deleteCommonItem(settingType, name) {
+      if(!confirm(`Delete this ${settingType === 'CommonProtein' ? 'protein' : 'dye'} "${name}"?`)) return;
+      try {
+        await fetch(GAS_WEB_APP_URL, { method: 'POST', body: JSON.stringify({ action: 'deleteSetting', settingType: settingType, settingKey: name }) });
+        if (settingType === 'CommonProtein') {
+          commonProteins = commonProteins.filter(p => p.name !== name);
+        } else {
+          commonDyes = commonDyes.filter(d => d.name !== name);
+        }
+        renderCommon();
+      } catch(e) { alert("Failed."); }
+    }
+
+    function lookupProteinInFreezer(name) {
+      const box = document.getElementById('freezer-lookup-box');
+      const nameEl = document.getElementById('lookup-protein-name');
+      const listEl = document.getElementById('lookup-results-list');
+      nameEl.innerText = name;
+      listEl.innerHTML = '';
+      box.classList.remove('hidden');
+      const matches = inventory.filter(item => {
+        return item.proteinName && item.proteinName.toLowerCase().includes(name.toLowerCase());
+      });
+      if (matches.length === 0) {
+        listEl.innerHTML = '<div class="text-slate-400 italic">No matching protein in freezer inventory.</div>';
+      } else {
+        matches.forEach(m => {
+          listEl.innerHTML += `
+            <div class="border-b border-slate-100 pb-1 mb-1">
+              <b>Tray ${m.tray}</b> > Box ${m.boxNum} (${m.boxName}) > Pillbox ${m.pillboxNum} (${m.pillboxName}) > Slot ${m.entryNum}
+              <div class="text-slate-400 text-[10px]">${m.notes || ''}</div>
+            </div>
+          `;
+        });
+      }
+    }
+
+    const recipePresets = {
+      Tris: 121.14,
+      NaCl: 58.44,
+      HEPES: 238.30,
+      DTT: 154.25,
+      MES: 195.20,
+      'Bis-Tris Propane': 282.30,
+      ZnCl2: 136.30,
+      NaOH: 40.00,
+      SDS: 288.38
+    };
+
+    function loadRecipePreset(value) {
+      const nameInput = document.getElementById('recipe-name');
+      const mwInput = document.getElementById('recipe-mw');
+      if (value === 'custom') {
+        nameInput.value = '';
+        mwInput.value = '';
+        nameInput.disabled = false;
+        mwInput.disabled = false;
+      } else {
+        nameInput.value = value;
+        mwInput.value = recipePresets[value];
+        nameInput.disabled = true;
+        mwInput.disabled = true;
+      }
+      calcRecipe();
+    }
+
+    function calcRecipe() {
+      const name = document.getElementById('recipe-name').value || 'Reagent';
+      const mw = parseFloat(document.getElementById('recipe-mw').value) || 0;
+      const concVal = parseFloat(document.getElementById('recipe-conc').value) || 0;
+      const concUnit = document.getElementById('recipe-conc-unit').value;
+      const volVal = parseFloat(document.getElementById('recipe-vol').value) || 0;
+      const volUnit = document.getElementById('recipe-vol-unit').value;
+      const resultEl = document.getElementById('recipe-result');
+      if (mw <= 0 || concVal <= 0 || volVal <= 0) {
+        resultEl.innerHTML = '<span class="text-slate-400">Enter recipe parameters above.</span>';
+        return;
+      }
+      const concM = concUnit === 'mM' ? concVal / 1000 : concVal;
+      const volL = volUnit === 'mL' ? volVal / 1000 : volVal;
+      const grams = concM * volL * mw;
+      resultEl.innerHTML = `
+        <div class="text-xs text-slate-500 font-medium">To prepare <span class="font-bold text-slate-700">${volVal} ${volUnit}</span> of <span class="font-bold text-slate-700">${concVal} ${concUnit}</span> ${name}:</div>
+        <div class="text-xl font-black text-indigo-600 mt-1">${grams.toFixed(4)} g</div>
+        <div class="text-[10px] text-slate-400 mt-0.5">(Dissolve in water, adjust pH if needed, bring to volume)</div>
+      `;
+    }
+
+    function renderCommon() {
+      const select = document.getElementById('pcr-saved-select');
+      select.innerHTML = '<option value="">-- Load Protocol --</option>';
+      commonProtocols.forEach(p => {
+        select.innerHTML += `<option value="${p.name}">${p.name}</option>`;
+      });
+      const listEl = document.getElementById('common-items-list');
+      let listHtml = '';
+      if (commonProteins.length === 0 && commonDyes.length === 0) {
+        listHtml = '<div class="text-slate-400 italic">No saved items.</div>';
+      } else {
+        commonProteins.forEach(p => {
+          const uniprotLink = p.data.uniprot ? `<a href="${p.data.uniprot}" target="_blank" class="text-blue-500 hover:underline">UniProt</a>` : '<span class="text-slate-400 font-normal">No Link</span>';
+          const tags = (p.data.tags || []).join(', ') || 'None';
+          listHtml += `
+            <div class="bg-slate-50 border border-slate-200 rounded p-2.5 flex justify-between items-start gap-2">
+              <div class="space-y-0.5">
+                <div class="font-bold text-slate-800 text-[13px]">${p.name} <span class="text-[10px] font-bold bg-emerald-100 text-emerald-800 px-1 py-0.5 rounded uppercase">Protein</span></div>
+                <div class="text-slate-600">Ext. Coeff: <span class="font-semibold">${p.data.coeff} M⁻¹cm⁻¹</span></div>
+                <div class="text-slate-600">Tags: <span class="font-semibold">${tags}</span></div>
+                <div class="text-slate-600">SEC elution: <span class="font-semibold">${p.data.fraction || '-'}</span> (${p.data.sec || '-'})</div>
+                <div class="mt-1">${uniprotLink}</div>
+              </div>
+              <div class="flex flex-col gap-1 items-end">
+                <button onclick="deleteCommonItem('CommonProtein', '${p.name}')" class="text-red-500 hover:text-red-700 font-bold text-[10px] uppercase">Del</button>
+                <button onclick="lookupProteinInFreezer('${p.name}')" class="bg-indigo-50 border border-indigo-200 hover:bg-indigo-100 text-indigo-600 font-bold py-1 px-2 rounded text-[10px] mt-1 shadow-sm">🔍 Find Trays</button>
+              </div>
+            </div>
+          `;
+        });
+        commonDyes.forEach(d => {
+          listHtml += `
+            <div class="bg-slate-50 border border-slate-200 rounded p-2.5 flex justify-between items-start gap-2">
+              <div class="space-y-0.5">
+                <div class="font-bold text-slate-800 text-[13px]">${d.name} <span class="text-[10px] font-bold bg-blue-100 text-blue-800 px-1 py-0.5 rounded uppercase">Dye</span></div>
+                <div class="text-slate-600">Ext. Coeff: <span class="font-semibold">${d.data.coeff} M⁻¹cm⁻¹</span></div>
+              </div>
+              <div>
+                <button onclick="deleteCommonItem('CommonDye', '${d.name}')" class="text-red-500 hover:text-red-700 font-bold text-[10px] uppercase">Del</button>
+              </div>
+            </div>
+          `;
+        });
+      }
+      listEl.innerHTML = listHtml;
+    }
+
+    function convertKinTekFile() {
+      const fileInput = document.getElementById('kintek-file-input');
+      const repsInput = document.getElementById('kintek-reps-input');
+      const n = parseInt(repsInput.value) || 3;
+      if (!fileInput.files || fileInput.files.length === 0) {
+        alert("Please select a file first.");
+        return;
+      }
+      const file = fileInput.files[0];
+      const reader = new FileReader();
+      if (file.name.endsWith('.xlsx')) {
+        reader.onload = function(e) {
+          const data = new Uint8Array(e.target.result);
+          const workbook = XLSX.read(data, {type: 'array'});
+          const firstSheetName = workbook.SheetNames[0];
+          const worksheet = workbook.Sheets[firstSheetName];
+          const json = XLSX.utils.sheet_to_json(worksheet, {header: 1});
+          processKinTekData(json, n);
+        };
+        reader.readAsArrayBuffer(file);
+      } else {
+        reader.onload = function(e) {
+          const text = e.target.result;
+          const delimiter = text.includes('\t') ? '\t' : (text.includes(',') ? ',' : ' ');
+          const rows = text.split('\n').map(line => line.split(delimiter).map(cell => cell.trim()));
+          processKinTekData(rows, n);
+        };
+        reader.readAsText(file);
+      }
+    }
+
+    function processKinTekData(rows, n) {
+      const cleanRows = rows.filter(r => r && r.length > 0 && r[0] !== undefined && r[0] !== '');
+      if (cleanRows.length < 2) {
+        alert("Invalid file: not enough rows.");
+        return;
+      }
+      const header = cleanRows[0];
+      const dataRows = cleanRows.slice(1);
+      const parsedData = dataRows.map(row => {
+        const conc = parseFloat(row[0]);
+        const reps = [];
+        for (let i = 1; i <= n; i++) {
+          if (row[i] !== undefined && row[i] !== '') {
+            reps.push(parseFloat(row[i]));
+          }
+        }
+        return { conc, reps };
+      }).filter(d => !isNaN(d.conc));
+      parsedData.sort((a, b) => b.conc - a.conc);
+      let outputText = `${header[0]}\t${header[1] || 'Data'}\n`;
+      parsedData.forEach(d => {
+        d.reps.forEach(val => {
+          if (!isNaN(val)) {
+            outputText += `${d.conc}\t${val}\n`;
+          }
+        });
+      });
+      const blob = new Blob([outputText], { type: 'text/plain;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const downloadLink = document.getElementById('kintek-download-link');
+      downloadLink.href = url;
+      downloadLink.download = `kintek_converted_${n}reps.txt`;
+      downloadLink.classList.remove('hidden');
+      document.getElementById('kintek-result-msg').innerHTML = `<span class="text-emerald-600 font-bold">Successfully converted ${parsedData.length} concentrations! Click below to download.</span>`;
+    }
+
+    safeAddListener('archive-search', 'input', (e) => {
+      const term = e.target.value.toLowerCase();
+      const rows = document.getElementById('archive-tbody').getElementsByTagName('tr');
+      for(let r of rows) {
+        r.style.display = r.innerText.toLowerCase().includes(term) ? '' : 'none';
+      }
+    });
+
     safeAddListener('btn-rename-box', 'click', submitRenameBox);
     document.addEventListener('click', (e) => {
       const details = e.target.closest('details');
@@ -366,4 +1262,5 @@
   </script>
 </body>
 </html>
+
 
