@@ -25,9 +25,106 @@
     <div id="loading" class="text-center text-cyan-700 font-bold text-lg my-10 animate-pulse">Syncing Kleiger Database...</div>
     <div id="error-state" class="hidden text-center text-red-600 font-semibold my-10 bg-red-50 p-4 rounded-lg"></div>
     
-    <div id="view-freezer" class="hidden space-y-8"><div id="screen-master-grid"><div class="bg-white p-8 rounded-xl shadow-sm border border-slate-200 mb-8"><div class="flex justify-between items-center mb-6"><h2 class="text-lg font-bold text-slate-700 uppercase tracking-widest">Master Grid (A-F)</h2><span class="text-xs font-bold text-amber-600 bg-amber-50 px-3 py-1 rounded border border-amber-200">💡 Click a Column Letter (A-F) to view all contents</span></div><div id="freezer-grid-container" class="max-w-3xl mx-auto"></div></div><div class="bg-slate-100 p-8 rounded-xl shadow-inner border border-slate-300"><h2 class="text-lg font-bold mb-6 text-center text-slate-700 uppercase tracking-widest flex items-center justify-center gap-2"><span>❄️</span> Bottom Storage: Glycerol Stocks</h2><div id="glycerol-overview-container" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4"></div></div></div><div id="screen-box-detail" class="hidden bg-white p-6 rounded-xl shadow-sm border border-slate-200"><div class="flex justify-between items-center mb-6 border-b border-slate-100 pb-4"><h2 id="box-title" class="text-2xl font-bold text-slate-800"></h2><button onclick="showScreen('screen-master-grid')" class="text-sm bg-slate-100 hover:bg-slate-200 text-slate-700 py-2 px-4 rounded-lg font-bold transition-colors">← Back to Grid</button></div><div id="box-grid-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"></div></div><div id="screen-glyc-detail" class="hidden bg-white p-6 rounded-xl shadow-sm border border-slate-200"><div class="flex justify-between items-center mb-6 border-b border-slate-100 pb-4"><div><h2 id="glyc-box-title" class="text-2xl font-bold text-blue-900"></h2></div><button onclick="showScreen('screen-master-grid')" class="text-sm bg-slate-100 hover:bg-slate-200 text-slate-700 py-2 px-4 rounded-lg font-bold transition-colors">← Back to Grid</button></div><div id="glyc-list-container" class="max-w-5xl mx-auto bg-white shadow-sm border border-slate-200 rounded-xl overflow-hidden"></div></div><div id="screen-column-detail" class="hidden bg-white p-6 rounded-xl shadow-sm border border-slate-200"><div class="flex justify-between items-center mb-6 border-b border-slate-100 pb-4"><h2 id="column-title" class="text-2xl font-bold text-slate-800"></h2><button onclick="showScreen('screen-master-grid')" class="text-sm bg-slate-100 hover:bg-slate-200 text-slate-700 py-2 px-4 rounded-lg font-bold transition-colors">← Back to Grid</button></div><div id="column-list-container" class="space-y-6"></div></div></div>
+    <div id="view-freezer" class="hidden space-y-8">
+      <div id="screen-master-grid" class="space-y-8">
+        <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+          <div class="flex justify-between items-center mb-6">
+            <h2 class="text-lg font-bold text-slate-700 uppercase tracking-widest">Master Grid (A-F & CRYO)</h2>
+            <span class="text-xs font-bold text-amber-600 bg-amber-50 px-3 py-1 rounded border border-amber-200">💡 Click any Column Header to view all contents</span>
+          </div>
+          <div id="freezer-grid-container" class="max-w-5xl mx-auto"></div>
+        </div>
+
+        <div class="bg-slate-100 p-5 rounded-xl shadow-inner border border-slate-300">
+          <h2 class="text-sm font-bold mb-3 text-center text-slate-700 uppercase tracking-widest flex items-center justify-center gap-2"><span>❄️</span> Bottom Storage: Glycerol Stocks</h2>
+          <div id="glycerol-overview-container" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-2"></div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <!-- -20°C Freezer Boxes -->
+          <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+            <div class="border-b border-slate-100 pb-4 mb-4 flex flex-wrap justify-between items-center gap-2">
+              <h2 class="text-lg font-bold text-slate-800 flex items-center gap-2">❄️ -20°C Freezer Boxes</h2>
+              <div class="flex items-center gap-2">
+                <input type="search" id="minus20-search" placeholder="Search -20°C..." oninput="renderMinus20()" class="text-xs border border-slate-300 rounded p-1.5 w-36">
+                <button onclick="openMinus20Modal()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-1 px-2.5 text-xs rounded shadow-sm">+ Add Item</button>
+              </div>
+            </div>
+            <div class="overflow-x-auto max-h-[350px]">
+              <table class="w-full text-left text-xs whitespace-nowrap">
+                <thead class="bg-slate-50 border-b border-slate-200 text-slate-500 font-bold sticky top-0">
+                  <tr>
+                    <th class="p-2">Box</th>
+                    <th class="p-2">Material</th>
+                    <th class="p-2">Type / Form</th>
+                    <th class="p-2">Details</th>
+                    <th class="p-2 text-right">Action</th>
+                  </tr>
+                </thead>
+                <tbody id="minus20-tbody" class="divide-y divide-slate-100 font-medium"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Competent Cells Registry -->
+          <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+            <div class="border-b border-slate-100 pb-4 mb-4 flex justify-between items-center">
+              <h2 class="text-lg font-bold text-slate-800 flex items-center gap-2">🧫 Competent Cells Locations</h2>
+              <button onclick="openCompCellModal()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-1 px-2.5 text-xs rounded shadow-sm">+ Add Cell Location</button>
+            </div>
+            <div class="overflow-x-auto max-h-[350px]">
+              <table class="w-full text-left text-xs whitespace-nowrap">
+                <thead class="bg-slate-50 border-b border-slate-200 text-slate-500 font-bold sticky top-0">
+                  <tr>
+                    <th class="p-2">Location</th>
+                    <th class="p-2">Cell Strain</th>
+                    <th class="p-2">Resistance</th>
+                    <th class="p-2">Notes</th>
+                    <th class="p-2 text-right">Action</th>
+                  </tr>
+                </thead>
+                <tbody id="compcell-tbody" class="divide-y divide-slate-100 font-medium"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="screen-box-detail" class="hidden bg-white p-6 rounded-xl shadow-sm border border-slate-200"><div class="flex justify-between items-center mb-6 border-b border-slate-100 pb-4"><h2 id="box-title" class="text-2xl font-bold text-slate-800"></h2><button onclick="showScreen('screen-master-grid')" class="text-sm bg-slate-100 hover:bg-slate-200 text-slate-700 py-2 px-4 rounded-lg font-bold transition-colors">← Back to Grid</button></div><div id="box-grid-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"></div></div>
+      <div id="screen-glyc-detail" class="hidden bg-white p-6 rounded-xl shadow-sm border border-slate-200"><div class="flex justify-between items-center mb-6 border-b border-slate-100 pb-4"><div><h2 id="glyc-box-title" class="text-2xl font-bold text-blue-900"></h2></div><button onclick="showScreen('screen-master-grid')" class="text-sm bg-slate-100 hover:bg-slate-200 text-slate-700 py-2 px-4 rounded-lg font-bold transition-colors">← Back to Grid</button></div><div id="glyc-list-container" class="max-w-5xl mx-auto bg-white shadow-sm border border-slate-200 rounded-xl overflow-hidden"></div></div>
+      <div id="screen-column-detail" class="hidden bg-white p-6 rounded-xl shadow-sm border border-slate-200"><div class="flex justify-between items-center mb-6 border-b border-slate-100 pb-4"><h2 id="column-title" class="text-2xl font-bold text-slate-800"></h2><button onclick="showScreen('screen-master-grid')" class="text-sm bg-slate-100 hover:bg-slate-200 text-slate-700 py-2 px-4 rounded-lg font-bold transition-colors">← Back to Grid</button></div><div id="column-list-container" class="space-y-6"></div></div>
+    </div>
     
-    <div id="view-global" class="hidden bg-white p-6 rounded-xl shadow-sm border border-slate-200"><div class="flex justify-between items-end mb-4 border-b border-slate-100 pb-4"><div><h2 class="text-2xl font-bold text-slate-800">Global Inventory Directory</h2></div><input type="search" id="global-search" placeholder="Filter table..." class="w-64 border border-slate-300 rounded p-2 focus:ring-2 focus:ring-cyan-500"></div><div class="table-scroll overflow-y-auto max-h-[600px]"><table class="w-full text-left text-sm whitespace-nowrap"><thead class="bg-slate-50 sticky top-0 z-10 border-b border-slate-200 text-slate-500"><tr><th class="p-3">Type</th><th class="p-3">Location</th><th class="p-3">Name / ID</th><th class="p-3">Details</th><th class="p-3">Notes</th></tr></thead><tbody id="global-table-body" class="divide-y divide-slate-100"></tbody></table></div></div>
+    <div id="view-global" class="hidden bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+      <div class="flex flex-wrap justify-between items-center mb-4 border-b border-slate-100 pb-4 gap-4">
+        <div>
+          <h2 class="text-2xl font-bold text-slate-800">Global Inventory Directory</h2>
+          <div class="flex flex-wrap gap-1.5 mt-2 text-xs">
+            <button onclick="setGlobalFilter('all')" id="global-filter-all" class="px-2.5 py-1 rounded-full font-bold bg-cyan-700 text-white shadow-sm">All</button>
+            <button onclick="setGlobalFilter('glycerol')" id="global-filter-glycerol" class="px-2.5 py-1 rounded-full font-bold bg-slate-100 text-slate-600 hover:bg-slate-200 transition-colors">Glycerol Stock</button>
+            <button onclick="setGlobalFilter('protein')" id="global-filter-protein" class="px-2.5 py-1 rounded-full font-bold bg-slate-100 text-slate-600 hover:bg-slate-200 transition-colors">Protein</button>
+            <button onclick="setGlobalFilter('dye')" id="global-filter-dye" class="px-2.5 py-1 rounded-full font-bold bg-slate-100 text-slate-600 hover:bg-slate-200 transition-colors">Dye</button>
+            <button onclick="setGlobalFilter('compound')" id="global-filter-compound" class="px-2.5 py-1 rounded-full font-bold bg-slate-100 text-slate-600 hover:bg-slate-200 transition-colors">Compound</button>
+            <button onclick="setGlobalFilter('cell')" id="global-filter-cell" class="px-2.5 py-1 rounded-full font-bold bg-slate-100 text-slate-600 hover:bg-slate-200 transition-colors">Cell</button>
+          </div>
+        </div>
+        <input type="search" id="global-search" placeholder="Filter table..." class="w-64 border border-slate-300 rounded p-2 focus:ring-2 focus:ring-cyan-500">
+      </div>
+      <div class="table-scroll overflow-y-auto max-h-[600px]">
+        <table class="w-full text-left text-sm whitespace-nowrap">
+          <thead class="bg-slate-50 sticky top-0 z-10 border-b border-slate-200 text-slate-500">
+            <tr>
+              <th class="p-3">Type</th>
+              <th class="p-3">Location</th>
+              <th class="p-3">Name / ID</th>
+              <th class="p-3">Details</th>
+              <th class="p-3">Notes</th>
+            </tr>
+          </thead>
+          <tbody id="global-table-body" class="divide-y divide-slate-100"></tbody>
+        </table>
+      </div>
+    </div>
     
     <div id="view-bio" class="hidden space-y-6"><div class="bg-slate-800 p-6 rounded-xl shadow-sm text-white"><div class="flex justify-between items-center mb-4"><h2 class="text-xl font-bold flex items-center gap-2"><span>📅</span> 14-Day Forecast Calendar</h2></div><div class="flex overflow-x-auto gap-4 table-scroll pb-2" id="calendar-container"></div></div><div class="grid grid-cols-1 lg:grid-cols-2 gap-6"><div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200"><div class="flex justify-between items-center mb-6 border-b border-slate-100 pb-4"><h2 class="text-xl font-bold text-slate-800">Cell Cultures</h2><button onclick="openUpdateCellModal()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-1 px-3 text-sm rounded shadow-sm">+ New Culture</button></div><div id="cells-grid-container" class="space-y-4"></div></div><div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200"><div class="flex justify-between items-center mb-6 border-b border-slate-100 pb-4"><h2 class="text-xl font-bold text-slate-800">Baculovirus Production</h2><button onclick="openVirusModal()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-1 px-3 text-sm rounded shadow-sm">+ New Infection</button></div><div id="virus-grid-container" class="space-y-4"></div></div></div><div class="grid grid-cols-1 lg:grid-cols-3 gap-6"><div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 flex flex-col h-[500px]"><div class="flex justify-between items-center mb-4 border-b border-slate-100 pb-4"><h2 class="text-xl font-bold text-slate-800">🦠 Current Viruses</h2><button onclick="openCurrentVirusModal()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-1 px-3 text-xs rounded shadow-sm">+ Add Virus</button></div><div class="overflow-y-auto flex-grow table-scroll pr-1"><table class="w-full text-left text-xs whitespace-nowrap"><thead class="bg-slate-50 sticky top-0 text-slate-500 font-bold border-b"><tr><th class="p-2">Name</th><th class="p-2">Stage</th><th class="p-2">Date</th><th class="p-2">Yield</th><th class="p-2 text-right">Action</th></tr></thead><tbody id="current-virus-tbody" class="divide-y divide-slate-100"></tbody></table></div></div><div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 flex flex-col h-[500px]"><div class="flex justify-between items-center mb-4 border-b border-slate-100 pb-4"><h2 class="text-xl font-bold text-slate-800">🧪 Media Inventory</h2><button onclick="openMediaModal()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-1 px-3 text-xs rounded shadow-sm">+ Update</button></div><div class="overflow-y-auto flex-grow table-scroll pr-1"><table class="w-full text-left text-xs whitespace-nowrap"><thead class="bg-slate-50 sticky top-0 text-slate-500 font-bold border-b"><tr><th class="p-2">Media Type</th><th class="p-2">Amount (L)</th><th class="p-2">Expiry</th><th class="p-2">Updated By</th><th class="p-2 text-right">Action</th></tr></thead><tbody id="media-tbody" class="divide-y divide-slate-100"></tbody></table></div></div><div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 flex flex-col h-[500px]"><div class="flex justify-between items-center mb-4 border-b border-slate-100 pb-4"><h2 class="text-xl font-bold text-slate-800">🧫 Bacterial Culture</h2><button onclick="openBacterialModal()" class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-1 px-3 text-xs rounded shadow-sm">+ Grow Culture</button></div><div id="bacterial-list" class="overflow-y-auto flex-grow table-scroll space-y-3 pr-1"></div></div></div></div>
     
@@ -125,95 +222,56 @@
             </div>
           </div>
 
-          <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 flex flex-col justify-between lg:col-span-2">
+          <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 flex flex-col justify-between lg:col-span-2">
             <div>
-              <div class="border-b border-slate-100 pb-4 mb-4">
-                <h2 class="text-xl font-bold text-slate-800 flex items-center gap-2">🌊 Quench Flow Calculator</h2>
+              <div class="border-b border-slate-100 pb-3 mb-3 flex flex-wrap justify-between items-center gap-2">
+                <h2 class="text-lg font-bold text-slate-800 flex items-center gap-2">🌊 Quench Flow Reagent Calculator</h2>
+                <div class="flex items-center gap-2">
+                  <select id="quench-preset-select" onchange="loadQuenchPreset(this.value)" class="border border-slate-300 rounded px-2 py-1 text-xs bg-white">
+                    <option value="">-- Select Preset --</option>
+                  </select>
+                  <button onclick="saveQuenchPreset()" class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold px-2.5 py-1 rounded shadow-sm transition-colors">+ Save Preset</button>
+                  <button onclick="deleteQuenchPreset()" class="bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 text-xs font-bold px-2.5 py-1 rounded transition-colors">Del</button>
+                </div>
               </div>
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <!-- Tube 1 -->
-                <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-3">
-                  <h3 class="font-bold text-sm text-indigo-700 border-b pb-1 mb-2">Tube 1</h3>
-                  <div>
-                    <label class="block text-xs font-bold text-slate-500 uppercase">Reagent Name</label>
-                    <input type="text" id="quench-name-1" value="Reagent A" class="w-full border border-slate-300 rounded p-1.5 text-xs mt-0.5" oninput="calcQuenchFlow()">
-                  </div>
-                  <div class="grid grid-cols-2 gap-2">
-                    <div>
-                      <label class="block text-xs font-bold text-slate-500 uppercase">Desired Conc</label>
-                      <div class="flex gap-1 mt-0.5">
-                        <input type="number" id="quench-des-conc-1" placeholder="Desired" class="w-full border border-slate-300 rounded p-1.5 text-xs" oninput="calcQuenchFlow()">
-                        <select id="quench-des-unit-1" class="border border-slate-300 rounded p-1.5 text-xs bg-white" onchange="calcQuenchFlow()">
-                          <option value="nM">nM</option>
-                          <option value="µM" selected>µM</option>
-                          <option value="mM">mM</option>
-                        </select>
-                      </div>
-                    </div>
-                    <div>
-                      <label class="block text-xs font-bold text-slate-500 uppercase">Stock Conc</label>
-                      <div class="flex gap-1 mt-0.5">
-                        <input type="number" id="quench-stock-conc-1" placeholder="Stock" class="w-full border border-slate-300 rounded p-1.5 text-xs" oninput="calcQuenchFlow()">
-                        <select id="quench-stock-unit-1" class="border border-slate-300 rounded p-1.5 text-xs bg-white" onchange="calcQuenchFlow()">
-                          <option value="nM">nM</option>
-                          <option value="µM" selected>µM</option>
-                          <option value="mM">mM</option>
-                        </select>
-                      </div>
+                <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-2">
+                  <div class="flex justify-between items-center border-b border-slate-200 pb-1.5">
+                    <span class="font-bold text-xs text-indigo-700 uppercase tracking-wide">Tube 1</span>
+                    <div class="flex items-center gap-1">
+                      <span class="text-[10px] font-bold text-slate-500">Vol:</span>
+                      <input type="number" id="quench-vol-1" value="260" oninput="calcQuenchFlow()" class="w-16 border border-slate-300 rounded p-1 text-xs text-center">
+                      <span class="text-[10px] text-slate-400">µL</span>
                     </div>
                   </div>
-                  <div>
-                    <label class="block text-xs font-bold text-slate-500 uppercase">Tube Volume (µL)</label>
-                    <input type="number" id="quench-vol-1" value="260" class="w-full border border-slate-300 rounded p-1.5 text-xs mt-0.5" oninput="calcQuenchFlow()">
-                  </div>
-                  <div id="quench-recipe-1" class="bg-white p-3 rounded border border-slate-200 text-xs space-y-1">
-                    <span class="text-slate-400">Enter concentrations.</span>
-                  </div>
+                  
+                  <div id="quench-tube1-reagents" class="space-y-1.5 max-h-56 overflow-y-auto pr-1"></div>
+                  <button onclick="addQuenchReagent(1)" class="w-full bg-slate-200 hover:bg-slate-300 text-slate-700 text-[11px] font-bold py-1 rounded transition-colors">+ Add Reagent to Tube 1</button>
+                  
+                  <div id="quench-recipe-1" class="bg-white p-2.5 rounded border border-slate-200 text-xs space-y-1 mt-2"></div>
                 </div>
+                
                 <!-- Tube 2 -->
-                <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-3">
-                  <h3 class="font-bold text-sm text-indigo-700 border-b pb-1 mb-2">Tube 2</h3>
-                  <div>
-                    <label class="block text-xs font-bold text-slate-500 uppercase">Reagent Name</label>
-                    <input type="text" id="quench-name-2" value="Reagent B" class="w-full border border-slate-300 rounded p-1.5 text-xs mt-0.5" oninput="calcQuenchFlow()">
-                  </div>
-                  <div class="grid grid-cols-2 gap-2">
-                    <div>
-                      <label class="block text-xs font-bold text-slate-500 uppercase">Desired Conc</label>
-                      <div class="flex gap-1 mt-0.5">
-                        <input type="number" id="quench-des-conc-2" placeholder="Desired" class="w-full border border-slate-300 rounded p-1.5 text-xs" oninput="calcQuenchFlow()">
-                        <select id="quench-des-unit-2" class="border border-slate-300 rounded p-1.5 text-xs bg-white" onchange="calcQuenchFlow()">
-                          <option value="nM">nM</option>
-                          <option value="µM" selected>µM</option>
-                          <option value="mM">mM</option>
-                        </select>
-                      </div>
-                    </div>
-                    <div>
-                      <label class="block text-xs font-bold text-slate-500 uppercase">Stock Conc</label>
-                      <div class="flex gap-1 mt-0.5">
-                        <input type="number" id="quench-stock-conc-2" placeholder="Stock" class="w-full border border-slate-300 rounded p-1.5 text-xs" oninput="calcQuenchFlow()">
-                        <select id="quench-stock-unit-2" class="border border-slate-300 rounded p-1.5 text-xs bg-white" onchange="calcQuenchFlow()">
-                          <option value="nM">nM</option>
-                          <option value="µM" selected>µM</option>
-                          <option value="mM">mM</option>
-                        </select>
-                      </div>
+                <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-2">
+                  <div class="flex justify-between items-center border-b border-slate-200 pb-1.5">
+                    <span class="font-bold text-xs text-indigo-700 uppercase tracking-wide">Tube 2</span>
+                    <div class="flex items-center gap-1">
+                      <span class="text-[10px] font-bold text-slate-500">Vol:</span>
+                      <input type="number" id="quench-vol-2" value="260" oninput="calcQuenchFlow()" class="w-16 border border-slate-300 rounded p-1 text-xs text-center">
+                      <span class="text-[10px] text-slate-400">µL</span>
                     </div>
                   </div>
-                  <div>
-                    <label class="block text-xs font-bold text-slate-500 uppercase">Tube Volume (µL)</label>
-                    <input type="number" id="quench-vol-2" value="260" class="w-full border border-slate-300 rounded p-1.5 text-xs mt-0.5" oninput="calcQuenchFlow()">
-                  </div>
-                  <div id="quench-recipe-2" class="bg-white p-3 rounded border border-slate-200 text-xs space-y-1">
-                    <span class="text-slate-400">Enter concentrations.</span>
-                  </div>
+                  
+                  <div id="quench-tube2-reagents" class="space-y-1.5 max-h-56 overflow-y-auto pr-1"></div>
+                  <button onclick="addQuenchReagent(2)" class="w-full bg-slate-200 hover:bg-slate-300 text-slate-700 text-[11px] font-bold py-1 rounded transition-colors">+ Add Reagent to Tube 2</button>
+                  
+                  <div id="quench-recipe-2" class="bg-white p-2.5 rounded border border-slate-200 text-xs space-y-1 mt-2"></div>
                 </div>
               </div>
-              <!-- Mixed Reacting Output -->
-              <div id="quench-mixed-result" class="bg-indigo-50 border border-indigo-200 p-4 rounded-xl text-center mt-6 min-h-[70px] flex flex-col justify-center text-slate-800 text-xs">
-                <span class="text-slate-500">Mixed state will be shown here.</span>
-              </div>
+              
+              <div id="quench-mixed-result" class="bg-indigo-50 border border-indigo-100 rounded-lg p-3 text-center mt-3 text-xs"></div>
             </div>
           </div>
 
@@ -469,6 +527,52 @@
         </div>
       </div>
 
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+        <!-- Important Phone Numbers -->
+        <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+          <div class="border-b border-slate-100 pb-4 mb-4 flex justify-between items-center">
+            <h2 class="text-xl font-bold text-slate-800 flex items-center gap-2">📞 Important Phone Numbers</h2>
+            <button onclick="openPhoneModal()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-1 px-3 text-xs rounded transition-colors shadow-sm">+ Add Phone</button>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs whitespace-nowrap">
+              <thead class="bg-slate-50 border-b border-slate-200 text-slate-500 font-bold">
+                <tr>
+                  <th class="p-2.5">Name</th>
+                  <th class="p-2.5">Phone</th>
+                  <th class="p-2.5">Role / Notes</th>
+                  <th class="p-2.5">Email</th>
+                  <th class="p-2.5 text-right">Action</th>
+                </tr>
+              </thead>
+              <tbody id="phone-tbody" class="divide-y divide-slate-100 font-medium"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Important PDB Files -->
+        <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+          <div class="border-b border-slate-100 pb-4 mb-4 flex justify-between items-center">
+            <h2 class="text-xl font-bold text-slate-800 flex items-center gap-2">💎 Important PDB Files</h2>
+            <button onclick="openPdbModal()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-1 px-3 text-xs rounded transition-colors shadow-sm">+ Add PDB</button>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs whitespace-nowrap">
+              <thead class="bg-slate-50 border-b border-slate-200 text-slate-500 font-bold">
+                <tr>
+                  <th class="p-2.5">Name / Code</th>
+                  <th class="p-2.5">Description</th>
+                  <th class="p-2.5">RCSB Link</th>
+                  <th class="p-2.5">File</th>
+                  <th class="p-2.5 text-right">Action</th>
+                </tr>
+              </thead>
+              <tbody id="pdb-tbody" class="divide-y divide-slate-100 font-medium"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
     </div>
   </main>
 
@@ -484,7 +588,7 @@
   <div id="image-viewer-modal" class="hidden fixed inset-0 bg-slate-900 bg-opacity-90 flex items-center justify-center p-4 z-50"><div class="relative"><button onclick="closeModal('image-viewer-modal')" class="absolute -top-10 right-0 text-white text-3xl font-bold">&times;</button><img id="viewer-img" src="" class="max-w-full max-h-[80vh] rounded shadow-2xl border-4 border-white"></div></div>
   
   <div id="create-pillbox-modal" class="hidden fixed inset-0 bg-slate-900 bg-opacity-60 flex items-center justify-center p-4 z-50"><div class="bg-white rounded-xl shadow-2xl w-full max-w-sm overflow-hidden"><div class="bg-indigo-600 p-4 text-white flex justify-between items-center"><h2 class="text-lg font-bold">Create Pillbox</h2><button onclick="closeModal('create-pillbox-modal')" class="text-2xl">&times;</button></div><form id="form-create-pillbox" class="p-6 space-y-4"><div><label class="block text-sm font-bold text-slate-700 mb-1">Pillbox Name</label><input type="text" id="input-pillbox-name" required class="w-full border border-slate-300 rounded p-2"></div><div><label class="block text-sm font-bold text-slate-700 mb-1">Date</label><input type="date" id="input-pillbox-date" required class="w-full border border-slate-300 rounded p-2"></div><div class="flex justify-end space-x-3"><button type="button" onclick="closeModal('create-pillbox-modal')" class="px-4 py-2 bg-slate-100 rounded">Cancel</button><button type="submit" id="btn-create-pillbox" class="px-4 py-2 bg-indigo-600 text-white rounded">Create</button></div></form></div></div>
-  <div id="add-protein-modal" class="hidden fixed inset-0 bg-slate-900 bg-opacity-60 flex items-center justify-center p-4 z-50"><div class="bg-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden"><div class="bg-emerald-700 p-4 text-white flex justify-between items-center"><h2 class="text-lg font-bold">Add Protein</h2><button onclick="closeModal('add-protein-modal')" class="text-2xl">&times;</button></div><form id="form-add-protein" class="p-6 space-y-4"><div class="flex gap-4"><div class="flex-grow"><label class="block text-sm font-bold mb-1">Name</label><input type="text" id="input-prot-name" required class="w-full border border-slate-300 rounded p-2"></div><div class="w-32"><label class="block text-sm font-bold mb-1">Owner</label><select id="input-prot-owner" class="w-full border border-slate-300 rounded p-2 bg-white"></select></div></div><div class="grid grid-cols-2 gap-4"><div><label class="block text-sm font-bold mb-1">Conc.</label><input type="text" id="input-prot-conc" class="w-full border border-slate-300 rounded p-2"></div><div><label class="block text-sm font-bold mb-1">Origin</label><input type="text" id="input-prot-origin" required class="w-full border border-slate-300 rounded p-2"></div></div><div><label class="block text-sm font-bold mb-1">Notes</label><textarea id="input-prot-notes" rows="2" class="w-full border border-slate-300 rounded p-2"></textarea></div><div><label class="block text-sm font-bold mb-1">Date</label><input type="date" id="input-prot-date" required class="w-full border border-slate-300 rounded p-2"></div><div class="flex justify-end space-x-3"><button type="button" onclick="closeModal('add-protein-modal')" class="px-4 py-2 bg-slate-100 rounded">Cancel</button><button type="submit" id="btn-add-protein" class="px-4 py-2 bg-emerald-700 text-white rounded">Save</button></div></form></div></div>
+  <div id="add-protein-modal" class="hidden fixed inset-0 bg-slate-900 bg-opacity-60 flex items-center justify-center p-4 z-50"><div class="bg-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden"><div class="bg-emerald-700 p-4 text-white flex justify-between items-center"><h2 class="text-lg font-bold">Add Item to Freezer Slot</h2><button onclick="closeModal('add-protein-modal')" class="text-2xl">&times;</button></div><form id="form-add-protein" class="p-6 space-y-4"><div class="grid grid-cols-2 gap-4"><div><label class="block text-sm font-bold mb-1">Classification</label><select id="input-prot-item-type" class="w-full border border-slate-300 rounded p-2 bg-white font-bold text-slate-700"><option value="Protein" selected>Protein</option><option value="Glycerol Stock">Glycerol Stock</option><option value="Dye">Dye</option><option value="Compound">Compound</option><option value="Cell">Cell</option></select></div><div><label class="block text-sm font-bold mb-1">Owner</label><select id="input-prot-owner" class="w-full border border-slate-300 rounded p-2 bg-white"></select></div></div><div><label class="block text-sm font-bold mb-1">Name / Identifier</label><input type="text" id="input-prot-name" required class="w-full border border-slate-300 rounded p-2"></div><div class="grid grid-cols-2 gap-4"><div><label class="block text-sm font-bold mb-1">Conc.</label><input type="text" id="input-prot-conc" class="w-full border border-slate-300 rounded p-2"></div><div><label class="block text-sm font-bold mb-1">Origin</label><input type="text" id="input-prot-origin" required class="w-full border border-slate-300 rounded p-2"></div></div><div><label class="block text-sm font-bold mb-1">Notes</label><textarea id="input-prot-notes" rows="2" class="w-full border border-slate-300 rounded p-2"></textarea></div><div><label class="block text-sm font-bold mb-1">Date</label><input type="date" id="input-prot-date" required class="w-full border border-slate-300 rounded p-2"></div><div class="flex justify-end space-x-3"><button type="button" onclick="closeModal('add-protein-modal')" class="px-4 py-2 bg-slate-100 rounded">Cancel</button><button type="submit" id="btn-add-protein" class="px-4 py-2 bg-emerald-700 text-white rounded">Save Item</button></div></form></div></div>
   <div id="add-glycerol-modal" class="hidden fixed inset-0 bg-slate-900 bg-opacity-60 flex items-center justify-center p-4 z-50"><div class="bg-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden"><div class="bg-blue-800 p-4 text-white flex justify-between items-center"><h2 class="text-lg font-bold" id="add-glyc-header">Add Glycerol Stock</h2><button onclick="closeModal('add-glycerol-modal')" class="text-2xl">&times;</button></div><form id="form-add-glycerol" class="p-6 space-y-4"><div class="grid grid-cols-2 gap-4"><div><label class="block text-sm font-bold mb-1">GKD ID</label><input type="text" id="input-glyc-gkd" required class="w-full border border-slate-300 rounded p-2"></div><div><label class="block text-sm font-bold mb-1">Owner</label><select id="input-glyc-owner" required class="w-full border border-slate-300 rounded p-2 bg-white"></select></div></div><div class="grid grid-cols-2 gap-4"><div><label class="block text-sm font-bold mb-1">Construct</label><input type="text" id="input-glyc-construct" required class="w-full border border-slate-300 rounded p-2"></div><div><label class="block text-sm font-bold mb-1">Cell Strain</label><input type="text" id="input-glyc-strain" required class="w-full border border-slate-300 rounded p-2"></div></div><div class="grid grid-cols-2 gap-4"><div><label class="block text-sm font-bold mb-1">Origin</label><input type="text" id="input-glyc-origin" class="w-full border border-slate-300 rounded p-2"></div><div><label class="block text-sm font-bold mb-1">Date</label><input type="date" id="input-glyc-date" required class="w-full border border-slate-300 rounded p-2"></div></div><div><label class="block text-sm font-bold mb-1">Notes</label><textarea id="input-glyc-notes" rows="2" class="w-full border border-slate-300 rounded p-2"></textarea></div><div class="border-t border-slate-100 pt-3"><label class="block text-sm font-bold mb-1">Sequence File (.seq)</label><input type="hidden" id="input-glyc-existing-seq"><input type="file" id="input-glyc-seq" accept=".seq,.txt,.fasta" class="w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"></div><div class="flex justify-end space-x-3 mt-6"><button type="button" onclick="closeModal('add-glycerol-modal')" class="px-4 py-2 bg-slate-100 rounded">Cancel</button><button type="submit" id="btn-add-glycerol" class="px-4 py-2 bg-blue-800 text-white rounded">Save</button></div></form></div></div>
   <div id="add-primer-modal" class="hidden fixed inset-0 bg-slate-900 bg-opacity-60 flex items-center justify-center p-4 z-50"><div class="bg-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden"><div class="bg-indigo-600 p-4 text-white flex justify-between items-center"><h2 class="text-lg font-bold">Add Primer</h2><button onclick="closeModal('add-primer-modal')" class="text-2xl">&times;</button></div><form id="form-add-primer" class="p-6 space-y-4"><div><label class="block text-sm font-bold mb-1">Name</label><input type="text" id="input-prm-name" required class="w-full border border-slate-300 rounded p-2"></div><div><label class="block text-sm font-bold mb-1">Sequence (5' to 3')</label><input type="text" id="input-prm-seq" required class="w-full border border-slate-300 rounded p-2 font-mono uppercase text-sm"></div><div><label class="block text-sm font-bold mb-1">Notes</label><textarea id="input-prm-notes" rows="2" class="w-full border border-slate-300 rounded p-2"></textarea></div><div class="flex justify-end space-x-3 mt-6"><button type="button" onclick="closeModal('add-primer-modal')" class="px-4 py-2 bg-slate-100 rounded">Cancel</button><button type="submit" id="btn-save-primer" class="px-4 py-2 bg-indigo-600 text-white rounded">Save</button></div></form></div></div>
   <div id="add-dna-modal" class="hidden fixed inset-0 bg-slate-900 bg-opacity-60 flex items-center justify-center p-4 z-50"><div class="bg-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden"><div class="bg-blue-600 p-4 text-white flex justify-between items-center"><h2 class="text-lg font-bold">Upload DNA Sequence</h2><button onclick="closeModal('add-dna-modal')" class="text-2xl">&times;</button></div><form id="form-add-dna" class="p-6 space-y-4"><div><label class="block text-sm font-bold mb-1">Link to GKD #</label><select id="input-dna-gkd" required class="w-full border border-slate-300 rounded p-2 bg-white"></select></div><div class="grid grid-cols-2 gap-4"><div><label class="block text-sm font-bold mb-1">Primer Used</label><select id="input-dna-primer" required class="w-full border border-slate-300 rounded p-2 bg-white"></select></div><div><label class="block text-sm font-bold mb-1">Direction</label><select id="input-dna-dir" required class="w-full border border-slate-300 rounded p-2 bg-white"><option value="5 to 3">5' to 3'</option><option value="3 to 5">3' to 5'</option></select></div></div><div class="border-t border-slate-100 pt-3"><label class="block text-sm font-bold mb-1">Sequence File (.seq, .txt, .fasta)</label><input type="file" id="input-dna-file" required accept=".seq,.txt,.fasta" class="w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"></div><div class="flex justify-end space-x-3 mt-6"><button type="button" onclick="closeModal('add-dna-modal')" class="px-4 py-2 bg-slate-100 rounded">Cancel</button><button type="submit" id="btn-save-dna" class="px-4 py-2 bg-blue-600 text-white rounded">Upload</button></div></form></div></div>
@@ -637,6 +741,191 @@
         </div>
       </form>
     </div>
+  <div id="phone-modal" class="hidden fixed inset-0 bg-slate-900 bg-opacity-60 flex items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-xl shadow-2xl w-full max-w-sm overflow-hidden">
+      <div class="bg-emerald-700 p-4 text-white flex justify-between items-center">
+        <h2 class="text-lg font-bold">Add Important Phone Contact</h2>
+        <button onclick="closeModal('phone-modal')" class="text-2xl">&times;</button>
+      </div>
+      <form id="form-add-phone" class="p-6 space-y-4">
+        <div>
+          <label class="block text-xs font-bold text-slate-500 uppercase">Contact Name</label>
+          <input type="text" id="input-phone-name" required class="w-full border border-slate-300 rounded p-2 text-sm mt-1">
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-500 uppercase">Phone Number</label>
+          <input type="text" id="input-phone-num" required placeholder="e.g. (702) 555-0199" class="w-full border border-slate-300 rounded p-2 text-sm mt-1">
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-500 uppercase">Role / Description</label>
+          <input type="text" id="input-phone-desc" required placeholder="e.g. Lab Safety / EHS Contact" class="w-full border border-slate-300 rounded p-2 text-sm mt-1">
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-500 uppercase">Email (optional)</label>
+          <input type="email" id="input-phone-email" placeholder="contact@unlv.edu" class="w-full border border-slate-300 rounded p-2 text-sm mt-1">
+        </div>
+        <div class="flex justify-end space-x-3 pt-4 border-t">
+          <button type="button" onclick="closeModal('phone-modal')" class="px-4 py-2 bg-slate-100 rounded text-sm font-bold">Cancel</button>
+          <button type="submit" id="btn-save-phone" class="px-4 py-2 bg-emerald-700 text-white rounded text-sm font-bold shadow">Save Contact</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="pdb-modal" class="hidden fixed inset-0 bg-slate-900 bg-opacity-60 flex items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-xl shadow-2xl w-full max-w-sm overflow-hidden">
+      <div class="bg-blue-700 p-4 text-white flex justify-between items-center">
+        <h2 class="text-lg font-bold">Add Important PDB Record</h2>
+        <button onclick="closeModal('pdb-modal')" class="text-2xl">&times;</button>
+      </div>
+      <form id="form-add-pdb" class="p-6 space-y-4">
+        <div>
+          <label class="block text-xs font-bold text-slate-500 uppercase">Structure Name</label>
+          <input type="text" id="input-pdb-name" required placeholder="e.g. Ubiquitin-E2 Complex" class="w-full border border-slate-300 rounded p-2 text-sm mt-1">
+        </div>
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="block text-xs font-bold text-slate-500 uppercase">PDB Code</label>
+            <input type="text" id="input-pdb-code" required placeholder="e.g. 1TUP" class="w-full border border-slate-300 rounded p-2 text-sm font-mono uppercase mt-1">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-500 uppercase">Direct PDB Link</label>
+            <input type="url" id="input-pdb-link" placeholder="https://www.rcsb.org/..." class="w-full border border-slate-300 rounded p-2 text-sm mt-1">
+          </div>
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-500 uppercase">Description / Notes</label>
+          <textarea id="input-pdb-desc" rows="2" class="w-full border border-slate-300 rounded p-2 text-sm mt-1"></textarea>
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-500 uppercase">Attach Structure File (.pdb, .cif) (optional)</label>
+          <input type="file" id="input-pdb-file" accept=".pdb,.cif,.txt" class="w-full text-xs text-slate-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 mt-1">
+        </div>
+        <div class="flex justify-end space-x-3 pt-4 border-t">
+          <button type="button" onclick="closeModal('pdb-modal')" class="px-4 py-2 bg-slate-100 rounded text-sm font-bold">Cancel</button>
+          <button type="submit" id="btn-save-pdb" class="px-4 py-2 bg-blue-700 text-white rounded text-sm font-bold shadow">Save PDB</button>
+        </div>
+      </form>
+    </div>
+  <div id="minus20-modal" class="hidden fixed inset-0 bg-slate-900 bg-opacity-60 flex items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden">
+      <div class="bg-indigo-800 p-4 text-white flex justify-between items-center">
+        <h2 class="text-lg font-bold">Add -20°C Freezer Item</h2>
+        <button onclick="closeModal('minus20-modal')" class="text-2xl">&times;</button>
+      </div>
+      <form id="form-add-minus20" class="p-6 space-y-4">
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="block text-xs font-bold text-slate-500 uppercase">Box Name / ID</label>
+            <input type="text" id="input-m20-box" required placeholder="e.g. Box 1" class="w-full border border-slate-300 rounded p-2 text-sm mt-1">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-500 uppercase">Material Name</label>
+            <input type="text" id="input-m20-name" required placeholder="e.g. pET28a-Ubiquitin" class="w-full border border-slate-300 rounded p-2 text-sm mt-1">
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="block text-xs font-bold text-slate-500 uppercase">Material Type</label>
+            <select id="input-m20-type" onchange="toggleMinus20Fields()" required class="w-full border border-slate-300 rounded p-2 bg-white text-sm mt-1 font-bold text-slate-700">
+              <option value="Chemical">Chemical</option>
+              <option value="Plasmid">Plasmid</option>
+              <option value="Protein">Protein</option>
+              <option value="Buffer">Buffer</option>
+              <option value="Antibiotic">Antibiotic</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-500 uppercase">Form</label>
+            <select id="input-m20-form" required class="w-full border border-slate-300 rounded p-2 bg-white text-sm mt-1">
+              <option value="Solubilized">Solubilized</option>
+              <option value="Powder">Powder</option>
+            </select>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-500 uppercase">Expiry Date (optional)</label>
+          <input type="date" id="input-m20-expiry" class="w-full border border-slate-300 rounded p-2 text-sm mt-1">
+        </div>
+
+        <!-- Dynamic Fields Container -->
+        <div id="m20-dynamic-fields" class="space-y-3 bg-slate-50 p-3 rounded border border-slate-200">
+          <div id="m20-field-plasmid" class="hidden grid grid-cols-2 gap-2">
+            <div>
+              <label class="block text-xs font-bold text-slate-500 uppercase">DNA Conc. (ng/µL)</label>
+              <input type="text" id="input-m20-dnaconc" placeholder="e.g. 150" class="w-full border border-slate-300 rounded p-2 text-sm mt-1">
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-500 uppercase">Volume (µL)</label>
+              <input type="text" id="input-m20-plasmidvol" placeholder="e.g. 50" class="w-full border border-slate-300 rounded p-2 text-sm mt-1">
+            </div>
+          </div>
+
+          <div id="m20-field-protein" class="hidden grid grid-cols-3 gap-2">
+            <div>
+              <label class="block text-xs font-bold text-slate-500 uppercase">Lot/Batch #</label>
+              <input type="text" id="input-m20-batch" placeholder="Lot# 01" class="w-full border border-slate-300 rounded p-2 text-sm mt-1">
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-500 uppercase">Conc.</label>
+              <input type="text" id="input-m20-protconc" placeholder="10 mg/mL" class="w-full border border-slate-300 rounded p-2 text-sm mt-1">
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-500 uppercase">Volume</label>
+              <input type="text" id="input-m20-protvol" placeholder="500 µL" class="w-full border border-slate-300 rounded p-2 text-sm mt-1">
+            </div>
+          </div>
+
+          <div id="m20-field-generic" class="grid grid-cols-1">
+            <label class="block text-xs font-bold text-slate-500 uppercase">Quantity / Volume</label>
+            <input type="text" id="input-m20-qty" placeholder="e.g. 10 mL or 1 tube" class="w-full border border-slate-300 rounded p-2 text-sm mt-1">
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-500 uppercase">Notes (optional)</label>
+          <textarea id="input-m20-notes" rows="2" class="w-full border border-slate-300 rounded p-2 text-sm mt-1"></textarea>
+        </div>
+
+        <div class="flex justify-end space-x-3 pt-4 border-t">
+          <button type="button" onclick="closeModal('minus20-modal')" class="px-4 py-2 bg-slate-100 rounded text-sm font-bold">Cancel</button>
+          <button type="submit" id="btn-save-minus20" class="px-4 py-2 bg-indigo-800 text-white rounded text-sm font-bold shadow">Save Item</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="compcell-modal" class="hidden fixed inset-0 bg-slate-900 bg-opacity-60 flex items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-xl shadow-2xl w-full max-w-sm overflow-hidden">
+      <div class="bg-emerald-700 p-4 text-white flex justify-between items-center">
+        <h2 class="text-lg font-bold">Add Competent Cell Location</h2>
+        <button onclick="closeModal('compcell-modal')" class="text-2xl">&times;</button>
+      </div>
+      <form id="form-add-compcell" class="p-6 space-y-4">
+        <div>
+          <label class="block text-xs font-bold text-slate-500 uppercase">Location</label>
+          <input type="text" id="input-cc-loc" required placeholder="e.g. -80 Tray B4 / -20 Box 3" class="w-full border border-slate-300 rounded p-2 text-sm mt-1">
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-500 uppercase">Cell Strain</label>
+          <input type="text" id="input-cc-strain" required placeholder="e.g. BL21 (DE3), DH5α, Rosetta" class="w-full border border-slate-300 rounded p-2 text-sm mt-1">
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-500 uppercase">Antibiotic Resistance</label>
+          <input type="text" id="input-cc-res" placeholder="e.g. Chloramphenicol, None" class="w-full border border-slate-300 rounded p-2 text-sm mt-1">
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-500 uppercase">Notes (optional)</label>
+          <textarea id="input-cc-notes" rows="2" placeholder="e.g. High efficiency competent cells" class="w-full border border-slate-300 rounded p-2 text-sm mt-1"></textarea>
+        </div>
+        <div class="flex justify-end space-x-3 pt-4 border-t">
+          <button type="button" onclick="closeModal('compcell-modal')" class="px-4 py-2 bg-slate-100 rounded text-sm font-bold">Cancel</button>
+          <button type="submit" id="btn-save-compcell" class="px-4 py-2 bg-emerald-700 text-white rounded text-sm font-bold shadow">Save Location</button>
+        </div>
+      </form>
+    </div>
   </div>
 
   <script>
@@ -649,6 +938,8 @@
 
     let inventory = [], glycerolInventory = [], team = [], trayOwners = {}, cellCultures = [], viruses = [], orders = [], orderRequests = [], plannedSplits = [];
     let currentViruses = [], mediaInventory = [], bacterialCultures = [], attachedForms = [];
+    let importantPhones = [], importantPdbs = [];
+    let minus20Items = [], compCells = [];
     let primerData = [], dnaData = [], chemData = [], shipData = [];
     let unlvAccount = "";
     let commonProtocols = [], commonProteins = [], commonDyes = [];
@@ -686,6 +977,7 @@
         team = []; trayOwners = {}; unlvAccount = "";
         commonProtocols = []; commonProteins = []; commonDyes = [];
         currentViruses = []; mediaInventory = []; bacterialCultures = []; attachedForms = [];
+        importantPhones = []; importantPdbs = [];
         if (result.settings) {
           result.settings.forEach(row => {
             if (row[0] === 'User') team.push({ name: String(row[1]).trim(), color: String(row[2]).trim() });
@@ -699,6 +991,11 @@
             if (row[0] === 'Media') { try { mediaInventory.push({ type: String(row[1]).trim(), ...JSON.parse(row[2]) }); } catch(e){} }
             if (row[0] === 'Bacterial') { try { bacterialCultures.push({ id: String(row[1]).trim(), ...JSON.parse(row[2]) }); } catch(e){} }
             if (row[0] === 'Form') { try { attachedForms.push({ name: String(row[1]).trim(), ...JSON.parse(row[2]) }); } catch(e){} }
+            if (row[0] === 'QuenchPreset') { try { quenchPresets.push({ name: String(row[1]).trim(), data: JSON.parse(row[2]) }); } catch(e){} }
+            if (row[0] === 'Phone') { try { importantPhones.push({ id: String(row[1]).trim(), ...JSON.parse(row[2]) }); } catch(e){} }
+            if (row[0] === 'PDB') { try { importantPdbs.push({ id: String(row[1]).trim(), ...JSON.parse(row[2]) }); } catch(e){} }
+            if (row[0] === 'Minus20') { try { minus20Items.push({ id: String(row[1]).trim(), ...JSON.parse(row[2]) }); } catch(e){} }
+            if (row[0] === 'CompCell') { try { compCells.push({ id: String(row[1]).trim(), ...JSON.parse(row[2]) }); } catch(e){} }
           });
         }
         
@@ -721,14 +1018,14 @@
     function switchTab(tab) {
       ['view-freezer', 'view-global', 'view-bio', 'view-ordering', 'view-dna', 'view-chem', 'view-calc', 'view-archive', 'view-common'].forEach(id => { let el = document.getElementById(id); if(el) el.classList.add('hidden'); });
       ['tab-freezer', 'tab-global', 'tab-bio', 'tab-ordering', 'tab-dna', 'tab-chem', 'tab-calc', 'tab-archive', 'tab-common'].forEach(id => { let el = document.getElementById(id); if(el) el.className = "px-2 py-1.5 rounded font-bold text-sm text-cyan-200 hover:bg-cyan-800 transition-colors"; });
-      if(tab === 'freezer') { document.getElementById('tab-freezer').classList.add('bg-cyan-700', 'text-white'); document.getElementById('view-freezer').classList.remove('hidden'); showScreen('screen-master-grid'); renderFreezer(); }
+      if(tab === 'freezer') { document.getElementById('tab-freezer').classList.add('bg-cyan-700', 'text-white'); document.getElementById('view-freezer').classList.remove('hidden'); showScreen('screen-master-grid'); renderFreezer(); renderMinus20(); renderCompCells(); }
       if(tab === 'global') { document.getElementById('tab-global').classList.add('bg-cyan-700', 'text-white'); document.getElementById('view-global').classList.remove('hidden'); renderGlobalInventory(); }
       if(tab === 'bio') { document.getElementById('tab-bio').classList.add('bg-cyan-700', 'text-white'); document.getElementById('view-bio').classList.remove('hidden'); renderBio(); }
       if(tab === 'dna') { document.getElementById('tab-dna').classList.add('bg-cyan-700', 'text-white'); document.getElementById('view-dna').classList.remove('hidden'); renderDna(); }
       if(tab === 'chem') { document.getElementById('tab-chem').classList.add('bg-cyan-700', 'text-white'); document.getElementById('view-chem').classList.remove('hidden'); renderChem(); }
       if(tab === 'ordering') { document.getElementById('tab-ordering').classList.add('bg-cyan-700', 'text-white'); document.getElementById('view-ordering').classList.remove('hidden'); renderOrdering(); }
       if(tab === 'archive') { document.getElementById('tab-archive').classList.add('bg-cyan-700', 'text-white'); document.getElementById('view-archive').classList.remove('hidden'); renderArchive(); }
-      if(tab === 'calc') { document.getElementById('tab-calc').classList.add('bg-cyan-700', 'text-white'); document.getElementById('view-calc').classList.remove('hidden'); }
+      if(tab === 'calc') { document.getElementById('tab-calc').classList.add('bg-cyan-700', 'text-white'); document.getElementById('view-calc').classList.remove('hidden'); renderQuenchReagents(1); renderQuenchReagents(2); renderQuenchPresetsDropdown(); }
       if(tab === 'common') { document.getElementById('tab-common').classList.add('bg-cyan-700', 'text-white'); document.getElementById('view-common').classList.remove('hidden'); renderCommon(); }
     }
 
@@ -739,11 +1036,31 @@
 
     // --- FREEZER ---
     function renderFreezer() {
-      const columns = ['A', 'B', 'C', 'D', 'E', 'F']; let html = `<div class="grid grid-cols-7 gap-3"><div></div>`; columns.forEach(c => html += `<div onclick="viewColumn('${c}')" class="text-center font-bold text-slate-400 mb-2 cursor-pointer hover:text-cyan-600 transition-colors" title="View all contents in Column ${c}">${c} (View)</div>`);
-      for(let r = 1; r <= 14; r++) { html += `<div class="flex items-center justify-end pr-3 font-bold text-slate-400">${r}</div>`; columns.forEach(c => { const trayId = `${c}${r}`; const ownerColor = trayOwners[trayId]; const hasItems = inventory.some(item => item.tray === trayId) || Object.keys(glycMap).some(k => k.startsWith(trayId)); if (hasItems || ownerColor) { let styleStr = ownerColor ? `background-color: ${ownerColor}; color: #ffffff; border-color: rgba(0,0,0,0.1);` : ''; let classStr = ownerColor ? '' : 'bg-cyan-50 border-cyan-200 text-cyan-800'; html += `<div draggable="true" ondragstart="dragStart(event, '${trayId}')" onclick="openRackModal('${trayId}')" class="border rounded h-14 flex items-center justify-center cursor-pointer shadow-sm transition-transform hover:scale-105 text-sm font-bold ${classStr}" style="${styleStr}">${trayId}</div>`; } else { html += `<div ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropTray(event, '${trayId}')" onclick="openRackModal('${trayId}')" class="border border-slate-200 border-dashed rounded h-14 flex items-center justify-center cursor-pointer text-sm font-bold bg-slate-50 text-slate-300 hover:bg-slate-100 transition-colors">${trayId}</div>`; } }); }
+      const columns = ['A', 'B', 'C', 'D', 'E', 'F', 'CRYO1', 'CRYO2']; 
+      let html = `<div class="grid grid-cols-9 gap-2"><div></div>`; 
+      columns.forEach(c => html += `<div onclick="viewColumn('${c}')" class="text-center font-bold text-slate-400 mb-2 cursor-pointer hover:text-cyan-600 transition-colors text-xs" title="View all contents in ${c}">${c} (View)</div>`);
+      
+      for(let r = 1; r <= 14; r++) { 
+        html += `<div class="flex items-center justify-end pr-2 font-bold text-slate-400 text-xs">${r}</div>`; 
+        columns.forEach(c => { 
+          const isCryo = c.startsWith('CRYO');
+          const trayId = isCryo ? `${c}-${r}` : `${c}${r}`; 
+          const displayLabel = isCryo ? `${c} B${r}` : trayId;
+          const ownerColor = trayOwners[trayId]; 
+          const hasItems = inventory.some(item => item.tray === trayId) || Object.keys(glycMap).some(k => k.startsWith(trayId)); 
+          
+          if (hasItems || ownerColor) { 
+            let styleStr = ownerColor ? `background-color: ${ownerColor}; color: #ffffff; border-color: rgba(0,0,0,0.1);` : ''; 
+            let classStr = ownerColor ? '' : (isCryo ? 'bg-indigo-50 border-indigo-200 text-indigo-800' : 'bg-cyan-50 border-cyan-200 text-cyan-800'); 
+            html += `<div draggable="true" ondragstart="dragStart(event, '${trayId}')" onclick="openRackModal('${trayId}')" class="border rounded h-14 flex items-center justify-center cursor-pointer shadow-sm transition-transform hover:scale-105 text-xs font-bold ${classStr}" style="${styleStr}">${displayLabel}</div>`; 
+          } else { 
+            let classStr = isCryo ? 'bg-slate-50 text-indigo-300 border-indigo-100' : 'bg-slate-50 text-slate-300 border-slate-200';
+            html += `<div ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="dropTray(event, '${trayId}')" onclick="openRackModal('${trayId}')" class="border border-dashed rounded h-14 flex items-center justify-center cursor-pointer text-xs font-bold ${classStr} hover:bg-slate-100 transition-colors">${displayLabel}</div>`; 
+          } 
+        }); 
+      }
       document.getElementById('freezer-grid-container').innerHTML = html + '</div>';
-      let glycHtml = ''; let uniqueGlycBoxes = new Set([...Object.values(glycMap), ...glycerolInventory.map(g => g.boxNum)]); Array.from(uniqueGlycBoxes).map(Number).sort((a,b) => a-b).forEach(b => { const stockCount = glycerolInventory.filter(g => g.boxNum === String(b)).length; const mapKey = Object.keys(glycMap).find(k => glycMap[k] === String(b)); const onClickLogic = mapKey ? `viewGlycerolBox('${b}', '${mapKey.split('-')[0]}', '${mapKey.split('-')[1]}')` : `alert('Box ${b} has not been placed in a Tray yet.')`; glycHtml += `<div onclick="${onClickLogic}" class="bg-white border border-slate-300 rounded-xl p-4 flex flex-col items-center justify-center cursor-pointer hover:bg-blue-50 hover:border-blue-300 transition-colors shadow-sm"><span class="font-bold text-slate-700">Box ${b}</span><span class="text-xs font-medium bg-slate-100 text-slate-500 px-2 py-1 rounded mt-2 border border-slate-200">${stockCount}/100 Slots</span></div>`; });
-      document.getElementById('glycerol-overview-container').innerHTML = glycHtml;
+      renderGlycerolOverview();
     }
     
     function viewColumn(col) {
@@ -757,15 +1074,230 @@
 
     function viewBox(trayId, boxNum) { closeModal('rack-modal'); current.tray = trayId; current.boxNum = boxNum; current.boxName = getBoxName(trayId, boxNum) || ''; showScreen('screen-box-detail'); document.getElementById('box-title').innerText = `Tray ${trayId} > Box ${boxNum}`; let html = ''; for(let p = 1; p <= 8; p++) { let pItems = inventory.filter(i => i.tray === trayId && i.boxNum === String(boxNum) && i.pillboxNum === String(p)); if (pItems.length === 0) { html += `<div class="border-2 border-dashed border-slate-300 rounded-xl bg-slate-50 flex flex-col items-center justify-center h-56 text-slate-400 hover:bg-indigo-50 cursor-pointer" onclick="openCreatePillboxModal('${p}')"><span class="text-3xl mb-2">+</span><span class="font-bold text-sm">Create Pillbox ${p}</span></div>`; } else { let pMeta = pItems[0]; html += `<div id="pillbox-${trayId}-${boxNum}-${p}" class="border border-indigo-200 rounded-xl overflow-hidden bg-white shadow-sm flex flex-col h-56"><div class="bg-indigo-50 p-3 border-b border-indigo-100 flex justify-between items-center"><span class="font-bold text-indigo-900 text-sm truncate" title="${pMeta.pillboxName}">${p} - ${pMeta.pillboxName}</span><span class="text-xs text-indigo-400 font-medium">${pMeta.pillboxDate}</span></div><div class="flex-grow flex flex-col divide-y divide-slate-100">`; for(let e = 1; e <= 3; e++) { let entry = pItems.find(i => i.entryNum === String(e) && i.proteinName !== ""); if (entry) { html += `<div id="entry-${trayId}-${boxNum}-${p}-${e}" title="Origin: ${entry.origin}\nNotes: ${entry.notes}\nDate: ${entry.proteinDate}" class="flex-1 p-3 flex items-center justify-between hover:bg-slate-50 cursor-help"><span class="text-sm font-bold text-slate-800 truncate pr-2">${entry.proteinName} <span class="text-xs text-slate-400 font-normal ml-1">${entry.concentration}</span></span><div class="w-4 h-4 rounded shadow-sm" style="background-color: ${entry.color}"></div></div>`; } else { html += `<button onclick="openAddProteinModal('${p}', '${pMeta.pillboxName}', '${pMeta.pillboxDate}', '${e}')" class="flex-1 p-2 text-xs font-bold text-slate-300 hover:text-emerald-600 uppercase">+ Add Protein ${e}</button>`; } } html += `</div></div>`; } } document.getElementById('box-grid-container').innerHTML = html; }
     
-    function viewGlycerolBox(glycBoxId, trayId, boxNum) { closeModal('rack-modal'); current.glycBoxId = glycBoxId; current.tray = trayId; current.boxNum = boxNum; showScreen('screen-glyc-detail'); document.getElementById('glyc-box-title').innerText = `Tray ${trayId} > Box ${boxNum} (Glycerol Box ${glycBoxId})`; let html = `<div class="overflow-x-auto max-h-[600px] overflow-y-auto"><table class="w-full text-left text-sm"><thead class="bg-slate-100 border-b border-slate-200 text-slate-600 uppercase text-xs sticky top-0 z-10"><tr><th class="p-3 w-16 text-center">Slot</th><th class="p-3">GKD ID</th><th class="p-3">Construct / Details</th><th class="p-3">Origin / Vector</th><th class="p-3 text-right">Actions</th></tr></thead><tbody class="divide-y divide-slate-100">`; for(let s = 1; s <= 100; s++) { let entry = glycerolInventory.find(i => i.boxNum === String(glycBoxId) && i.slotNum === String(s)); if (entry) { let seqHtml = ''; let dMatches = dnaData.filter(d => d.gkd === entry.gkdId); if (dMatches.length > 0) seqHtml = `<br><span class="text-[10px] text-blue-600 font-bold bg-blue-50 px-1 py-0.5 rounded border border-blue-200">🧬 Has Sequence</span>`; else if (entry.seqStr) seqHtml = `<br><a href="${entry.seqStr}" download="${entry.gkdId}.seq" class="text-[10px] text-blue-600 bg-blue-50 border border-blue-200 px-2 py-0.5 rounded font-bold hover:bg-blue-100 inline-block mt-1">💾 .seq</a>`; html += `<tr id="glyc-slot-${glycBoxId}-${s}" class="hover:bg-slate-50 group"><td class="p-3 text-center font-bold text-slate-400">${s}</td><td class="p-3 font-bold text-blue-700"><div class="flex items-center gap-2 mb-1"><div class="w-3 h-3 rounded-full shadow-sm" style="background-color: ${entry.color}"></div>${entry.gkdId}</div>${seqHtml}</td><td class="p-3"><div class="font-bold text-slate-800">${entry.construct}</div><div class="text-xs text-slate-500">Strain: ${entry.cellStrain}</div><div class="text-xs text-slate-400 truncate max-w-[200px]" title="${entry.notes}">${entry.notes}</div></td><td class="p-3 text-slate-600">${entry.origin}</td><td class="p-3 text-right"><button onclick="openEditGlycerolModal('${s}')" class="text-blue-500 hover:text-blue-700 font-medium mr-3 opacity-0 group-hover:opacity-100 transition-opacity">Edit</button><button onclick="deleteGlycerol('${s}')" class="text-red-400 hover:text-red-600 font-medium opacity-0 group-hover:opacity-100 transition-opacity">Del</button></td></tr>`; } else { html += `<tr id="glyc-slot-${glycBoxId}-${s}" class="hover:bg-slate-50 group"><td class="p-3 text-center font-medium text-slate-300">${s}</td><td colspan="3" class="p-3 text-slate-400 italic text-xs">Empty Slot</td><td class="p-3 text-right"><button onclick="openAddGlycerolModal('${s}')" class="text-blue-500 hover:text-blue-700 font-medium opacity-0 group-hover:opacity-100">+ Add Entry</button></td></tr>`; } } html += `</tbody></table></div>`; document.getElementById('glyc-list-container').innerHTML = html; }
-    async function deleteGlycerol(slotNum) { if(!confirm(`Delete Glycerol Stock in Slot ${slotNum}?`)) return; try { await fetch(GAS_WEB_APP_URL, { method: 'POST', body: JSON.stringify({ action: 'deleteGlycerol', boxNum: current.glycBoxId, slotNum: slotNum }) }); glycerolInventory = glycerolInventory.filter(i => !(i.boxNum === String(current.glycBoxId) && i.slotNum === String(slotNum))); viewGlycerolBox(current.glycBoxId, current.tray, current.boxNum); } catch (err) { alert('Failed.'); } }
+    function viewGlycerolBox(glycBoxId, trayId, boxNum) { closeModal('rack-modal'); current.glycBoxId = glycBoxId; current.tray = trayId; current.boxNum = boxNum; showScreen('screen-glyc-detail'); document.getElementById('glyc-box-title').innerText = `Tray ${trayId} > Box ${boxNum} (Glycerol Box ${glycBoxId})`; let html = `<div class="overflow-x-auto max-h-[600px] overflow-y-auto"><table class="w-full text-left text-sm"><thead class="bg-slate-100 border-b border-slate-200 text-slate-600 uppercase text-xs sticky top-0 z-10"><tr><th class="p-3 w-16 text-center">Slot</th><th class="p-3">GKD ID</th><th class="p-3">Construct / Details</th><th class="p-3">Origin / Vector</th><th class="p-3 text-right">Actions</th></tr></thead><tbody class="divide-y divide-slate-100">`; for(let s = 1; s <= 100; s++) { let entry = glycerolInventory.find(i => i.boxNum === String(glycBoxId) && i.slotNum === String(s)); if (entry) { let seqHtml = ''; let dMatches = dnaData.filter(d => d.gkd === entry.gkdId); if (dMatches.length > 0) seqHtml = `<br><span class="text-[10px] text-blue-600 font-bold bg-blue-50 px-1 py-0.5 rounded border border-blue-200">🧬 Has Sequence</span>`; else if (entry.seqStr) seqHtml = `<br><a href="${entry.seqStr}" download="${entry.gkdId}.seq" class="text-[10px] text-blue-600 bg-blue-50 border border-blue-200 px-2 py-0.5 rounded font-bold hover:bg-blue-100 inline-block mt-1">💾 .seq</a>`; html += `<tr id="glyc-slot-${glycBoxId}-${s}" class="hover:bg-slate-50 group"><td class="p-3 text-center font-bold text-slate-400">${s}</td><td class="p-3 font-bold text-blue-700"><div class="flex items-center gap-2 mb-1"><div class="w-3 h-3 rounded-full shadow-sm" style="background-color: ${entry.color}"></div>${entry.gkdId}</div>${seqHtml}</td><td class="p-3"><div class="font-bold text-slate-800">${entry.construct}</div><div class="text-xs text-slate-500">Strain: ${entry.cellStrain}</div><div class="text-xs text-slate-400 truncate max-w-[200px]" title="${entry.notes}">${entry.notes}</div></td><td class="p-3 text-slate-600">${entry.origin}</td><td class="p-3 text-right"><button onclick="openEditGlycerolModal('${s}')" class="text-blue-500 hover:text-blue-700 font-medium mr-3 opacity-0 group-hover:opacity-100 transition-opacity">Edit</button><button onclick="deleteGlycerol('${s}', '${glycBoxId}')" class="text-red-400 hover:text-red-600 font-medium opacity-0 group-hover:opacity-100 transition-opacity">Del</button></td></tr>`; } else { html += `<tr id="glyc-slot-${glycBoxId}-${s}" class="hover:bg-slate-50 group"><td class="p-3 text-center font-medium text-slate-300">${s}</td><td colspan="3" class="p-3 text-slate-400 italic text-xs">Empty Slot</td><td class="p-3 text-right"><button onclick="openAddGlycerolModal('${s}')" class="text-blue-500 hover:text-blue-700 font-medium opacity-0 group-hover:opacity-100">+ Add Entry</button></td></tr>`; } } html += `</tbody></table></div>`; document.getElementById('glyc-list-container').innerHTML = html; }
+    async function deleteGlycerol(slotNum, explicitBoxNum = null) { const boxNum = explicitBoxNum || current.glycBoxId; if(!confirm(`Delete Glycerol Stock in Box ${boxNum}, Slot ${slotNum}?`)) return; try { await fetch(GAS_WEB_APP_URL, { method: 'POST', body: JSON.stringify({ action: 'deleteGlycerol', boxNum: String(boxNum), slotNum: String(slotNum) }) }); glycerolInventory = glycerolInventory.filter(i => !(String(i.boxNum) === String(boxNum) && String(i.slotNum) === String(slotNum))); if(current.glycBoxId && String(current.glycBoxId) === String(boxNum)) viewGlycerolBox(current.glycBoxId, current.tray, current.boxNum); renderGlobalInventory(); } catch (err) { alert('Failed.'); } }
+
+    function renderGlycerolOverview() {
+      let glycHtml = ''; 
+      let uniqueGlycBoxes = new Set([...Object.values(glycMap), ...glycerolInventory.map(g => g.boxNum)]); 
+      Array.from(uniqueGlycBoxes).map(Number).sort((a,b) => a-b).forEach(b => { 
+        const stocks = glycerolInventory.filter(g => g.boxNum === String(b)); 
+        const stockCount = stocks.length; 
+        const mapKey = Object.keys(glycMap).find(k => glycMap[k] === String(b)); 
+        
+        let locStr = mapKey ? `Tray ${mapKey.split('-')[0]} (B${mapKey.split('-')[1]})` : 'Unplaced';
+        
+        let gkdNums = stocks.map(s => {
+          let m = (s.gkdId || '').match(/\d+/);
+          return m ? parseInt(m[0]) : null;
+        }).filter(n => n !== null).sort((x,y) => x-y);
+        
+        let spanStr = stockCount > 0 ? (gkdNums.length > 0 ? `GKD ${gkdNums[0]} - ${gkdNums[gkdNums.length-1]}` : `${stockCount} stocks`) : 'Empty';
+
+        const onClickLogic = mapKey ? `viewGlycerolBox('${b}', '${mapKey.split('-')[0]}', '${mapKey.split('-')[1]}')` : `alert('Box ${b} has not been placed in a Tray yet.')`; 
+        
+        glycHtml += `
+          <div onclick="${onClickLogic}" class="bg-white border border-slate-300 rounded-lg p-2 flex flex-col items-center justify-center cursor-pointer hover:bg-blue-50 hover:border-blue-300 transition-colors shadow-sm text-center">
+            <span class="font-bold text-slate-800 text-xs">Box ${b}</span>
+            <span class="text-[11px] font-semibold text-blue-700 mt-0.5">${spanStr}</span>
+            <span class="text-[10px] text-slate-500 mt-0.5 font-medium bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200">${locStr}</span>
+          </div>`; 
+      }); 
+      const container = document.getElementById('glycerol-overview-container');
+      if(container) container.innerHTML = glycHtml || '<div class="col-span-full text-center text-xs text-slate-400 py-2">No glycerol boxes registered.</div>';
+    }
+
+    function toggleMinus20Fields() {
+      const type = document.getElementById('input-m20-type').value;
+      const plasDiv = document.getElementById('m20-field-plasmid');
+      const protDiv = document.getElementById('m20-field-protein');
+      const genDiv = document.getElementById('m20-field-generic');
+      
+      if(plasDiv) plasDiv.classList.add('hidden');
+      if(protDiv) protDiv.classList.add('hidden');
+      if(genDiv) genDiv.classList.add('hidden');
+
+      if(type === 'Plasmid') {
+        if(plasDiv) plasDiv.classList.remove('hidden');
+      } else if(type === 'Protein') {
+        if(protDiv) protDiv.classList.remove('hidden');
+      } else {
+        if(genDiv) genDiv.classList.remove('hidden');
+      }
+    }
+
+    function renderMinus20() {
+      const tbody = document.getElementById('minus20-tbody');
+      if(!tbody) return;
+      const query = (document.getElementById('minus20-search')?.value || '').toLowerCase().trim();
+      let html = '';
+      
+      const filtered = minus20Items.filter(i => {
+        if(!query) return true;
+        return (i.box || '').toLowerCase().includes(query) ||
+               (i.name || '').toLowerCase().includes(query) ||
+               (i.type || '').toLowerCase().includes(query) ||
+               (i.notes || '').toLowerCase().includes(query);
+      });
+
+      if(filtered.length === 0) {
+        html = `<tr><td colspan="5" class="p-3 text-center text-slate-400">No items found in -20°C storage.</td></tr>`;
+      } else {
+        filtered.forEach(i => {
+          let badgeClass = 'bg-slate-100 text-slate-800';
+          if (i.type === 'Plasmid') badgeClass = 'bg-blue-100 text-blue-800';
+          if (i.type === 'Protein') badgeClass = 'bg-cyan-100 text-cyan-800';
+          if (i.type === 'Antibiotic') badgeClass = 'bg-amber-100 text-amber-800';
+          if (i.type === 'Chemical') badgeClass = 'bg-emerald-100 text-emerald-800';
+
+          let details = [];
+          if(i.type === 'Plasmid') {
+            if(i.dnaConc) details.push(`DNA: ${i.dnaConc} ng/µL`);
+            if(i.volume) details.push(`Vol: ${i.volume} µL`);
+          } else if(i.type === 'Protein') {
+            if(i.batch) details.push(`Lot: ${i.batch}`);
+            if(i.protConc) details.push(`Conc: ${i.protConc}`);
+            if(i.volume) details.push(`Vol: ${i.volume}`);
+          } else {
+            if(i.qty) details.push(i.qty);
+          }
+
+          let expHtml = i.expiry ? `<br><span class="text-[10px] ${new Date(i.expiry) < new Date() ? 'text-red-500 font-bold' : 'text-slate-400'}">Exp: ${i.expiry}</span>` : '';
+
+          html += `
+            <tr class="hover:bg-slate-50">
+              <td class="p-2 font-bold text-slate-700">${i.box}</td>
+              <td class="p-2 font-bold text-indigo-900">${i.name}${expHtml}</td>
+              <td class="p-2"><span class="${badgeClass} text-[10px] font-bold px-1.5 py-0.5 rounded">${i.type}</span> <span class="text-[10px] text-slate-500 font-medium">(${i.form})</span></td>
+              <td class="p-2 text-slate-600 text-xs">${details.join(' | ') || '-'}</td>
+              <td class="p-2 text-right"><button onclick="deleteMinus20('${i.id}')" class="text-red-500 hover:text-red-700 font-bold">&times;</button></td>
+            </tr>`;
+        });
+      }
+      tbody.innerHTML = html;
+    }
+
+    function openMinus20Modal() {
+      document.getElementById('form-add-minus20').reset();
+      toggleMinus20Fields();
+      openModal('minus20-modal');
+    }
+
+    async function deleteMinus20(id) {
+      if(!confirm("Delete this item from -20°C storage?")) return;
+      try {
+        await fetch(GAS_WEB_APP_URL, {
+          method: 'POST',
+          body: JSON.stringify({ action: 'deleteSetting', settingType: 'Minus20', settingKey: id })
+        });
+        minus20Items = minus20Items.filter(i => i.id !== id);
+        renderMinus20();
+      } catch(e) { alert('Failed.'); }
+    }
+
+    function renderCompCells() {
+      const tbody = document.getElementById('compcell-tbody');
+      if(!tbody) return;
+      let html = '';
+      if(compCells.length === 0) {
+        html = `<tr><td colspan="5" class="p-3 text-center text-slate-400">No competent cell locations logged.</td></tr>`;
+      } else {
+        compCells.forEach(c => {
+          html += `
+            <tr class="hover:bg-slate-50">
+              <td class="p-2 font-bold text-emerald-800">${c.loc}</td>
+              <td class="p-2 font-bold text-slate-800">${c.strain}</td>
+              <td class="p-2"><span class="bg-amber-50 text-amber-800 border border-amber-200 text-[10px] font-bold px-1.5 py-0.5 rounded">${c.res || 'None'}</span></td>
+              <td class="p-2 text-slate-500 text-xs truncate max-w-[150px]" title="${c.notes}">${c.notes || '-'}</td>
+              <td class="p-2 text-right"><button onclick="deleteCompCell('${c.id}')" class="text-red-500 hover:text-red-700 font-bold">&times;</button></td>
+            </tr>`;
+        });
+      }
+      tbody.innerHTML = html;
+    }
+
+    function openCompCellModal() {
+      document.getElementById('form-add-compcell').reset();
+      openModal('compcell-modal');
+    }
+
+    async function deleteCompCell(id) {
+      if(!confirm("Delete this competent cell entry?")) return;
+      try {
+        await fetch(GAS_WEB_APP_URL, {
+          method: 'POST',
+          body: JSON.stringify({ action: 'deleteSetting', settingType: 'CompCell', settingKey: id })
+        });
+        compCells = compCells.filter(c => c.id !== id);
+        renderCompCells();
+      } catch(e) { alert('Failed.'); }
+    }
 
     // --- INVENTORY ---
+    let currentGlobalFilter = 'all';
+
+    function setGlobalFilter(cat) {
+      currentGlobalFilter = cat;
+      ['all', 'glycerol', 'protein', 'dye', 'compound', 'cell'].forEach(c => {
+        const btn = document.getElementById(`global-filter-${c}`);
+        if(btn) {
+          if(c === cat) btn.className = "px-2.5 py-1 rounded-full font-bold bg-cyan-700 text-white shadow-sm";
+          else btn.className = "px-2.5 py-1 rounded-full font-bold bg-slate-100 text-slate-600 hover:bg-slate-200 transition-colors";
+        }
+      });
+      renderGlobalInventory();
+    }
+
     function renderGlobalInventory() {
       let html = '';
-      inventory.filter(i => i.proteinName).forEach(p => { html += `<tr class="hover:bg-slate-50 cursor-pointer" onclick="goToProteinSearch('${p.tray}', '${p.boxNum}', '${p.pillboxNum}', '${p.entryNum}')"><td class="p-3"><span class="bg-cyan-100 text-cyan-800 text-xs font-bold px-2 py-1 rounded">Protein</span></td><td class="p-3 text-slate-500 font-medium">T${p.tray}/B${p.boxNum}/P${p.pillboxNum}/S${p.entryNum}</td><td class="p-3 font-bold text-slate-800 flex items-center gap-2"><div class="w-3 h-3 rounded-full" style="background-color:${p.color}"></div>${p.proteinName}</td><td class="p-3 text-slate-600">${p.concentration} | ${p.origin}</td><td class="p-3 text-slate-500 text-xs truncate max-w-[200px]" title="${p.notes}">${p.notes}</td></tr>`; });
-      glycerolInventory.forEach(g => { const mapKey = Object.keys(glycMap).find(k => glycMap[k] === g.boxNum); const loc = mapKey ? `T${mapKey.split('-')[0]}/GB${g.boxNum}/S${g.slotNum}` : `GB${g.boxNum}/S${g.slotNum}`; const onClick = mapKey ? `goToGlycerolSearch('${mapKey}', '${g.boxNum}', '${g.slotNum}')` : ''; html += `<tr class="hover:bg-slate-50 cursor-pointer" onclick="${onClick}"><td class="p-3"><span class="bg-blue-100 text-blue-800 text-xs font-bold px-2 py-1 rounded">Glycerol</span></td><td class="p-3 text-slate-500 font-medium">${loc}</td><td class="p-3 font-bold text-blue-900 flex items-center gap-2"><div class="w-3 h-3 rounded-full" style="background-color:${g.color}"></div>${g.gkdId}</td><td class="p-3 text-slate-600">${g.construct} | ${g.cellStrain}</td><td class="p-3 text-slate-500 text-xs truncate max-w-[200px]" title="${g.notes}">${g.notes}</td></tr>`; });
-      document.getElementById('global-table-body').innerHTML = html;
+      const filter = currentGlobalFilter;
+
+      inventory.filter(i => i.proteinName).forEach(p => {
+        const itemType = p.itemType || 'Protein';
+        const typeLower = itemType.toLowerCase();
+        
+        if (filter !== 'all') {
+          if (filter === 'protein' && !typeLower.includes('protein')) return;
+          if (filter === 'glycerol' && !typeLower.includes('glycerol')) return;
+          if (filter === 'dye' && !typeLower.includes('dye')) return;
+          if (filter === 'compound' && !typeLower.includes('compound')) return;
+          if (filter === 'cell' && !typeLower.includes('cell')) return;
+        }
+
+        let badgeClass = 'bg-cyan-100 text-cyan-800';
+        if (typeLower.includes('dye')) badgeClass = 'bg-blue-100 text-blue-800';
+        if (typeLower.includes('compound')) badgeClass = 'bg-amber-100 text-amber-800';
+        if (typeLower.includes('cell')) badgeClass = 'bg-purple-100 text-purple-800';
+        if (typeLower.includes('glycerol')) badgeClass = 'bg-indigo-100 text-indigo-800';
+
+        html += `
+          <tr class="hover:bg-slate-50 cursor-pointer" onclick="goToProteinSearch('${p.tray}', '${p.boxNum}', '${p.pillboxNum}', '${p.entryNum}')">
+            <td class="p-3"><span class="${badgeClass} text-xs font-bold px-2 py-1 rounded">${itemType}</span></td>
+            <td class="p-3 text-slate-500 font-medium">T${p.tray}/B${p.boxNum}/P${p.pillboxNum}/S${p.entryNum}</td>
+            <td class="p-3 font-bold text-slate-800 flex items-center gap-2"><div class="w-3 h-3 rounded-full" style="background-color:${p.color}"></div>${p.proteinName}</td>
+            <td class="p-3 text-slate-600">${p.concentration} | ${p.origin}</td>
+            <td class="p-3 text-slate-500 text-xs truncate max-w-[200px]" title="${p.notes}">${p.notes}</td>
+          </tr>`;
+      });
+
+      if (filter === 'all' || filter === 'glycerol') {
+        glycerolInventory.forEach(g => {
+          const mapKey = Object.keys(glycMap).find(k => glycMap[k] === g.boxNum);
+          const loc = mapKey ? `T${mapKey.split('-')[0]}/GB${g.boxNum}/S${g.slotNum}` : `GB${g.boxNum}/S${g.slotNum}`;
+          const onClick = mapKey ? `goToGlycerolSearch('${mapKey}', '${g.boxNum}', '${g.slotNum}')` : '';
+          html += `
+            <tr class="hover:bg-slate-50 cursor-pointer" onclick="${onClick}">
+              <td class="p-3"><span class="bg-blue-100 text-blue-800 text-xs font-bold px-2 py-1 rounded">Glycerol Stock</span></td>
+              <td class="p-3 text-slate-500 font-medium">${loc}</td>
+              <td class="p-3 font-bold text-blue-900 flex items-center gap-2"><div class="w-3 h-3 rounded-full" style="background-color:${g.color}"></div>${g.gkdId}</td>
+              <td class="p-3 text-slate-600">${g.construct} | ${g.cellStrain}</td>
+              <td class="p-3 text-slate-500 text-xs truncate max-w-[200px]" title="${g.notes}">${g.notes}</td>
+            </tr>`;
+        });
+      }
+
+      const tbody = document.getElementById('global-table-body');
+      if(tbody) tbody.innerHTML = html || '<tr><td colspan="5" class="p-6 text-center text-slate-400 font-medium">No inventory items match this category filter.</td></tr>';
     }
 
     // --- BIO TRACKER & GRAPHING ---
@@ -1093,7 +1625,26 @@
 
         if(c.isExp) {
            let expHrs = (Date.now() - new Date(c.expStart).getTime()) / 3600000;
-           displayDensity = `<span class="text-lg text-emerald-600 font-bold">Expressing protein...<br><span class="text-sm font-medium text-slate-500">${expHrs.toFixed(1)} hrs elapsed</span></span>`;
+           let statusText = "Infecting cells...";
+           let statusBadge = "bg-blue-100 text-blue-800 border-blue-200";
+           if (expHrs >= 24 && expHrs < 48) {
+             statusText = "Starting transcription...";
+             statusBadge = "bg-indigo-100 text-indigo-800 border-indigo-200";
+           } else if (expHrs >= 48 && expHrs < 72) {
+             statusText = "Ramping up exponential expression";
+             statusBadge = "bg-purple-100 text-purple-800 border-purple-200";
+           } else if (expHrs >= 72 && expHrs < 96) {
+             statusText = "Harvest cells now";
+             statusBadge = "bg-emerald-100 text-emerald-800 border-emerald-200 animate-pulse";
+           } else if (expHrs >= 96) {
+             statusText = "Harvest now to prevent lysis!";
+             statusBadge = "bg-red-100 text-red-800 border-red-200 animate-bounce font-bold";
+           }
+
+           displayDensity = `<div class="flex flex-col items-center gap-1.5 py-1">
+             <span class="text-xs font-bold px-3 py-1 rounded-full border ${statusBadge} shadow-sm">${statusText}</span>
+             <span class="text-xs font-semibold text-slate-500">${expHrs.toFixed(1)} hrs elapsed</span>
+           </div>`;
            densityAlert = `<div class="mt-2"><button onclick="toggleExpression('${c.id}', false)" class="text-[11px] font-bold uppercase bg-slate-200 hover:bg-slate-300 text-slate-700 px-3 py-1 rounded transition-colors">Stop Expression</button></div>`;
         } else {
            if (c.cellType === 'Sf9' || c.cellType === 'High Five') { 
@@ -1196,7 +1747,7 @@
     safeAddListener('btn-save-plan-another', 'click', () => { if(document.getElementById('form-plan-split').checkValidity()) submitPlan(true); else document.getElementById('form-plan-split').reportValidity(); });
 
     safeAddListener('form-split-cell', 'submit', async (e) => { e.preventDefault(); const btn = document.getElementById('btn-save-split-cell'); btn.innerText = "Saving..."; btn.disabled = true; const cellId = document.getElementById('input-split-cell-id').value; const c = cellCultures.find(x => x.id === cellId); const mDen = parseFloat(document.getElementById('input-split-measured').value); const sDen = parseFloat(document.getElementById('input-split-seed').value); const nVol = parseFloat(document.getElementById('input-split-vol').value); const nFls = parseInt(document.getElementById('input-split-flasks').value); let hrs = (Date.now() - new Date(c.lastSplitTime).getTime()) / 3600000; let calcDt = (hrs * Math.log(2)) / Math.log(mDen / c.density); if(!isFinite(calcDt) || calcDt <= 0) calcDt = 0; let hist = JSON.parse(c.history || "[]"); hist.push({ date: new Date().toISOString(), measured: mDen, seeded: sDen, dt: parseFloat(calcDt.toFixed(1)), passage: c.passageNum + 1 }); const payload = { action: 'saveCulture', id: c.id, cellType: c.cellType, doublingTime: c.doublingTime, passageNum: c.passageNum + 1, density: sDen, volume: nVol, flasks: nFls, totalCells: sDen * nVol * nFls, person: c.person, color: c.color, lastSplitTime: new Date().toISOString(), isExp: false, expStart: "", history: JSON.stringify(hist) }; try { await fetch(GAS_WEB_APP_URL, { method: 'POST', body: JSON.stringify(payload) }); await fetchInventoryData(); closeModal('split-cell-modal'); renderBio(); } catch (err) { alert('Failed.'); } finally { btn.innerText = "Split Culture"; btn.disabled = false; } });
-    safeAddListener('form-update-cell', 'submit', async (e) => { e.preventDefault(); const btn = document.getElementById('btn-save-up-cell'); btn.innerText = "Saving..."; btn.disabled = true; const combinedVal = document.getElementById('input-up-cell-owner').value; const col = combinedVal ? combinedVal.split('|')[0] : '#4f46e5'; const per = combinedVal ? combinedVal.split('|')[1] : 'Unknown'; const den = parseFloat(document.getElementById('input-up-cell-density').value); const vol = parseFloat(document.getElementById('input-up-cell-vol').value); const fls = parseInt(document.getElementById('input-up-cell-flasks').value); const payload = { action: 'saveCulture', id: document.getElementById('input-up-cell-id').value, cellType: document.getElementById('input-up-cell-type').value, doublingTime: document.getElementById('input-up-cell-doubling').value, passageNum: document.getElementById('input-up-cell-passage').value, density: den, volume: vol, flasks: fls, totalCells: den * vol * fls, person: per, color: col, lastSplitTime: new Date().toISOString(), isExp: false, expStart: "", history: document.getElementById('input-up-cell-history').value }; try { await fetch(GAS_WEB_APP_URL, { method: 'POST', body: JSON.stringify(payload) }); await fetchInventoryData(); closeModal('update-cell-modal'); renderBio(); } catch (err) { alert('Failed.'); } finally { btn.innerText = "Save Update"; btn.disabled = false; } });
+    safeAddListener('form-update-cell', 'submit', async (e) => { e.preventDefault(); const btn = document.getElementById('btn-save-up-cell'); btn.innerText = "Saving..."; btn.disabled = true; const cellId = document.getElementById('input-up-cell-id').value; const existing = cellCultures.find(x => x.id === cellId); const isExp = existing ? existing.isExp : false; const expStart = existing ? existing.expStart : ""; const combinedVal = document.getElementById('input-up-cell-owner').value; const col = combinedVal ? combinedVal.split('|')[0] : '#4f46e5'; const per = combinedVal ? combinedVal.split('|')[1] : 'Unknown'; const den = parseFloat(document.getElementById('input-up-cell-density').value); const vol = parseFloat(document.getElementById('input-up-cell-vol').value); const fls = parseInt(document.getElementById('input-up-cell-flasks').value); const payload = { action: 'saveCulture', id: cellId, cellType: document.getElementById('input-up-cell-type').value, doublingTime: document.getElementById('input-up-cell-doubling').value, passageNum: document.getElementById('input-up-cell-passage').value, density: den, volume: vol, flasks: fls, totalCells: den * vol * fls, person: per, color: col, lastSplitTime: existing ? existing.lastSplitTime : new Date().toISOString(), isExp: isExp, expStart: expStart, history: document.getElementById('input-up-cell-history').value }; try { await fetch(GAS_WEB_APP_URL, { method: 'POST', body: JSON.stringify(payload) }); await fetchInventoryData(); closeModal('update-cell-modal'); renderBio(); } catch (err) { alert('Failed.'); } finally { btn.innerText = "Save Update"; btn.disabled = false; } });
     safeAddListener('form-add-primer', 'submit', async (e) => { e.preventDefault(); const btn = document.getElementById('btn-save-primer'); btn.disabled=true; btn.innerText="Saving..."; try { const payload = { action: 'savePrimer', name: document.getElementById('input-prm-name').value, sequence: document.getElementById('input-prm-seq').value, notes: document.getElementById('input-prm-notes').value }; await fetch(GAS_WEB_APP_URL, {method:'POST', body:JSON.stringify(payload)}); await fetchInventoryData(); closeModal('add-primer-modal'); renderDna(); } catch(err){alert('Failed.');} finally{btn.disabled=false;btn.innerText="Save";} });
     safeAddListener('form-add-dna', 'submit', async (e) => { e.preventDefault(); const btn = document.getElementById('btn-save-dna'); btn.disabled=true; btn.innerText="Uploading..."; const fileInput = document.getElementById('input-dna-file'); const sendPayload = async(str) => { try { const payload = { action: 'saveDNA', gkd: document.getElementById('input-dna-gkd').value, primer: document.getElementById('input-dna-primer').value, dir: document.getElementById('input-dna-dir').value, seqStr: str }; await fetch(GAS_WEB_APP_URL, {method:'POST', body:JSON.stringify(payload)}); await fetchInventoryData(); closeModal('add-dna-modal'); renderDna(); renderFreezer(); } catch(err){alert('Failed.');} finally{btn.disabled=false;btn.innerText="Upload";} }; if(fileInput.files && fileInput.files[0]) { const reader = new FileReader(); reader.onload = (ev) => sendPayload(ev.target.result); reader.readAsDataURL(fileInput.files[0]); } });
     safeAddListener('form-add-chem', 'submit', async (e) => { e.preventDefault(); const btn = document.getElementById('btn-save-chem'); btn.disabled=true; btn.innerText="Saving..."; try { const payload = { action: 'saveChemical', name: document.getElementById('input-chem-name').value, qty: document.getElementById('input-chem-qty').value, loc: document.getElementById('input-chem-loc').value, batch: document.getElementById('input-chem-batch').value, received: document.getElementById('input-chem-rec').value, opened: document.getElementById('input-chem-open').value }; await fetch(GAS_WEB_APP_URL, {method:'POST', body:JSON.stringify(payload)}); await fetchInventoryData(); closeModal('add-chem-modal'); renderChem(); } catch(err){alert('Failed.');} finally{btn.disabled=false;btn.innerText="Save";} });
@@ -1207,7 +1758,7 @@
     safeAddListener('form-add-comment', 'submit', async (e) => { e.preventDefault(); const btn = document.getElementById('btn-save-comment'); btn.innerText = "Posting..."; btn.disabled = true; const combinedVal = document.getElementById('input-comment-owner').value; const per = combinedVal ? combinedVal.split('|')[1] : 'Unknown'; const reqId = document.getElementById('input-comment-req-id').value; const txt = document.getElementById('input-comment-text').value; try { await fetch(GAS_WEB_APP_URL, { method: 'POST', body: JSON.stringify({ action: 'addRequestComment', id: reqId, person: per, text: txt }) }); const req = orderRequests.find(r => r.id === reqId); if(req) req.comments.push({ person: per, text: txt, date: new Date().toISOString() }); openComments(reqId); renderOrdering(); } catch (err) { alert('Failed.'); } finally { btn.innerText = "Post"; btn.disabled = false; } });
     safeAddListener('form-add-user', 'submit', async (e) => { e.preventDefault(); const btn = document.getElementById('btn-add-user'); btn.innerText = "..."; btn.disabled = true; const name = document.getElementById('input-new-user').value; const color = document.getElementById('input-new-color').value; try { await fetch(GAS_WEB_APP_URL, { method: 'POST', body: JSON.stringify({ action: 'saveSetting', settingType: 'User', settingKey: name, settingValue: color }) }); team.push({name, color}); document.getElementById('form-add-user').reset(); openSettingsModal(); } catch(err) { alert('Failed.'); } finally { btn.innerText = "Add"; btn.disabled = false; } });
     safeAddListener('form-create-pillbox', 'submit', async (e) => { e.preventDefault(); const btn = document.getElementById('btn-create-pillbox'); btn.innerText = "Saving..."; btn.disabled = true; const payload = { action: 'createPillbox', tray: current.tray, boxNum: current.boxNum, boxName: current.boxName, pillboxNum: current.pillboxNum, pillboxName: document.getElementById('input-pillbox-name').value, pillboxDate: document.getElementById('input-pillbox-date').value }; try { await fetch(GAS_WEB_APP_URL, { method: 'POST', body: JSON.stringify(payload) }); inventory.push(payload); closeModal('create-pillbox-modal'); document.getElementById('form-create-pillbox').reset(); viewBox(current.tray, current.boxNum); } catch (err) { alert('Failed.'); } finally { btn.innerText = "Create"; btn.disabled = false; } });
-    safeAddListener('form-add-protein', 'submit', async (e) => { e.preventDefault(); const btn = document.getElementById('btn-add-protein'); btn.innerText = "Saving..."; btn.disabled = true; const combinedVal = document.getElementById('input-prot-owner').value; const selectedColor = combinedVal ? combinedVal.split('|')[0] : '#0f172a'; const payload = { action: 'saveProtein', tray: current.tray, boxNum: current.boxNum, boxName: current.boxName, pillboxNum: current.pillboxNum, pillboxName: current.pillboxName, pillboxDate: current.pillboxDate, entryNum: current.entryNum, proteinName: document.getElementById('input-prot-name').value, color: selectedColor, concentration: document.getElementById('input-prot-conc').value, origin: document.getElementById('input-prot-origin').value, notes: document.getElementById('input-prot-notes').value, date: document.getElementById('input-prot-date').value }; localStorage.setItem('labOwnerColor', selectedColor); try { await fetch(GAS_WEB_APP_URL, { method: 'POST', body: JSON.stringify(payload) }); inventory.push(payload); closeModal('add-protein-modal'); document.getElementById('form-add-protein').reset(); viewBox(current.tray, current.boxNum); } catch (err) { alert('Failed.'); } finally { btn.innerText = "Save"; btn.disabled = false; } });
+    safeAddListener('form-add-protein', 'submit', async (e) => { e.preventDefault(); const btn = document.getElementById('btn-add-protein'); btn.innerText = "Saving..."; btn.disabled = true; const combinedVal = document.getElementById('input-prot-owner').value; const selectedColor = combinedVal ? combinedVal.split('|')[0] : '#0f172a'; const payload = { action: 'saveProtein', tray: current.tray, boxNum: current.boxNum, boxName: current.boxName, pillboxNum: current.pillboxNum, pillboxName: current.pillboxName, pillboxDate: current.pillboxDate, entryNum: current.entryNum, itemType: document.getElementById('input-prot-item-type').value, proteinName: document.getElementById('input-prot-name').value, color: selectedColor, concentration: document.getElementById('input-prot-conc').value, origin: document.getElementById('input-prot-origin').value, notes: document.getElementById('input-prot-notes').value, date: document.getElementById('input-prot-date').value }; localStorage.setItem('labOwnerColor', selectedColor); try { await fetch(GAS_WEB_APP_URL, { method: 'POST', body: JSON.stringify(payload) }); inventory.push(payload); closeModal('add-protein-modal'); document.getElementById('form-add-protein').reset(); viewBox(current.tray, current.boxNum); } catch (err) { alert('Failed.'); } finally { btn.innerText = "Save"; btn.disabled = false; } });
     
     function compressImage(file, callback) { const reader = new FileReader(); reader.onload = (e) => { const img = new Image(); img.onload = () => { const canvas = document.createElement('canvas'); const scale = Math.min(400 / img.width, 1); canvas.width = img.width * scale; canvas.height = img.height * scale; const ctx = canvas.getContext('2d'); ctx.drawImage(img, 0, 0, canvas.width, canvas.height); callback(canvas.toDataURL('image/jpeg', 0.6)); }; img.src = e.target.result; }; reader.readAsDataURL(file); }
     
@@ -1264,6 +1815,116 @@
         btn.innerText = "Attach Form";
         btn.disabled = false;
       }
+    });
+    
+    safeAddListener('form-add-phone', 'submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('btn-save-phone');
+      btn.disabled = true;
+      const id = 'PH-' + Date.now();
+      const payload = {
+        name: document.getElementById('input-phone-name').value,
+        phone: document.getElementById('input-phone-num').value,
+        desc: document.getElementById('input-phone-desc').value,
+        email: document.getElementById('input-phone-email').value
+      };
+      try {
+        await fetch(GAS_WEB_APP_URL, {
+          method: 'POST',
+          body: JSON.stringify({ action: 'saveSetting', settingType: 'Phone', settingKey: id, settingValue: JSON.stringify(payload) })
+        });
+        importantPhones.push({ id, ...payload });
+        closeModal('phone-modal');
+        renderPhones();
+      } catch(err) { alert('Failed.'); } finally { btn.disabled = false; }
+    });
+
+    safeAddListener('form-add-pdb', 'submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('btn-save-pdb');
+      btn.innerText = "Saving...";
+      btn.disabled = true;
+      const fileInput = document.getElementById('input-pdb-file');
+      
+      const sendPayload = async (fileDataUrl) => {
+        const id = 'PDB-' + Date.now();
+        const payload = {
+          name: document.getElementById('input-pdb-name').value,
+          code: document.getElementById('input-pdb-code').value.toUpperCase(),
+          link: document.getElementById('input-pdb-link').value,
+          desc: document.getElementById('input-pdb-desc').value,
+          fileContent: fileDataUrl
+        };
+        try {
+          await fetch(GAS_WEB_APP_URL, {
+            method: 'POST',
+            body: JSON.stringify({ action: 'saveSetting', settingType: 'PDB', settingKey: id, settingValue: JSON.stringify(payload) })
+          });
+          importantPdbs.push({ id, ...payload });
+          closeModal('pdb-modal');
+          renderPdbs();
+        } catch(err) { alert('Failed.'); } finally { btn.innerText = "Save PDB"; btn.disabled = false; }
+      };
+
+      if (fileInput.files && fileInput.files[0]) {
+        const reader = new FileReader();
+        reader.onload = (ev) => sendPayload(ev.target.result);
+        reader.readAsDataURL(fileInput.files[0]);
+      } else {
+        sendPayload('');
+      }
+    });
+
+    safeAddListener('form-add-minus20', 'submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('btn-save-minus20');
+      btn.disabled = true;
+      const id = 'M20-' + Date.now();
+      const type = document.getElementById('input-m20-type').value;
+      const payload = {
+        box: document.getElementById('input-m20-box').value,
+        name: document.getElementById('input-m20-name').value,
+        type: type,
+        form: document.getElementById('input-m20-form').value,
+        expiry: document.getElementById('input-m20-expiry').value,
+        dnaConc: document.getElementById('input-m20-dnaconc').value,
+        volume: type === 'Plasmid' ? document.getElementById('input-m20-plasmidvol').value : (type === 'Protein' ? document.getElementById('input-m20-protvol').value : ''),
+        batch: document.getElementById('input-m20-batch').value,
+        protConc: document.getElementById('input-m20-protconc').value,
+        qty: document.getElementById('input-m20-qty').value,
+        notes: document.getElementById('input-m20-notes').value
+      };
+      try {
+        await fetch(GAS_WEB_APP_URL, {
+          method: 'POST',
+          body: JSON.stringify({ action: 'saveSetting', settingType: 'Minus20', settingKey: id, settingValue: JSON.stringify(payload) })
+        });
+        minus20Items.push({ id, ...payload });
+        closeModal('minus20-modal');
+        renderMinus20();
+      } catch(err) { alert('Failed.'); } finally { btn.disabled = false; }
+    });
+
+    safeAddListener('form-add-compcell', 'submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('btn-save-compcell');
+      btn.disabled = true;
+      const id = 'CC-' + Date.now();
+      const payload = {
+        loc: document.getElementById('input-cc-loc').value,
+        strain: document.getElementById('input-cc-strain').value,
+        res: document.getElementById('input-cc-res').value,
+        notes: document.getElementById('input-cc-notes').value
+      };
+      try {
+        await fetch(GAS_WEB_APP_URL, {
+          method: 'POST',
+          body: JSON.stringify({ action: 'saveSetting', settingType: 'CompCell', settingKey: id, settingValue: JSON.stringify(payload) })
+        });
+        compCells.push({ id, ...payload });
+        closeModal('compcell-modal');
+        renderCompCells();
+      } catch(err) { alert('Failed.'); } finally { btn.disabled = false; }
     });
     
     safeAddListener('global-search', 'input', (e) => { const term = e.target.value.toLowerCase(); const rows = document.getElementById('global-table-body').getElementsByTagName('tr'); for(let r of rows) { r.style.display = r.innerText.toLowerCase().includes(term) ? '' : 'none'; } });
@@ -1521,21 +2182,82 @@
       tbody.innerHTML = html;
     }
 
+    let quenchTube1 = [
+      { id: 1, name: 'Protein A', stockConc: 100, stockUnit: 'µM', desConc: 10, desUnit: 'µM' }
+    ];
+    let quenchTube2 = [
+      { id: 2, name: 'Reagent B', stockConc: 500, stockUnit: 'µM', desConc: 50, desUnit: 'µM' }
+    ];
+    let quenchPresets = [];
+
+    function renderQuenchReagents(tubeNum) {
+      const container = document.getElementById(tubeNum === 1 ? 'quench-tube1-reagents' : 'quench-tube2-reagents');
+      if(!container) return;
+      const list = tubeNum === 1 ? quenchTube1 : quenchTube2;
+      let html = '';
+      list.forEach((r, idx) => {
+        html += `
+          <div class="bg-white p-2 rounded border border-slate-200 text-xs space-y-1.5 relative">
+            <div class="flex justify-between items-center gap-1">
+              <input type="text" value="${r.name}" placeholder="Reagent Name" oninput="updateQuenchReagent(${tubeNum}, ${r.id}, 'name', this.value)" class="w-full border border-slate-300 rounded p-1 font-bold text-slate-700">
+              ${list.length > 1 ? `<button onclick="removeQuenchReagent(${tubeNum}, ${r.id})" class="text-red-500 hover:text-red-700 font-bold px-1">&times;</button>` : ''}
+            </div>
+            <div class="grid grid-cols-2 gap-1.5">
+              <div>
+                <label class="block text-[9px] font-bold text-slate-400 uppercase">Stock Conc</label>
+                <div class="flex gap-0.5 mt-0.5">
+                  <input type="number" value="${r.stockConc || ''}" placeholder="Stock" oninput="updateQuenchReagent(${tubeNum}, ${r.id}, 'stockConc', this.value)" class="w-full border border-slate-300 rounded p-1 text-[11px]">
+                  <select onchange="updateQuenchReagent(${tubeNum}, ${r.id}, 'stockUnit', this.value)" class="border border-slate-300 rounded p-1 text-[10px] bg-white">
+                    <option value="nM" ${r.stockUnit === 'nM' ? 'selected' : ''}>nM</option>
+                    <option value="µM" ${r.stockUnit === 'µM' ? 'selected' : ''}>µM</option>
+                    <option value="mM" ${r.stockUnit === 'mM' ? 'selected' : ''}>mM</option>
+                  </select>
+                </div>
+              </div>
+              <div>
+                <label class="block text-[9px] font-bold text-slate-400 uppercase">Desired Mixed Conc</label>
+                <div class="flex gap-0.5 mt-0.5">
+                  <input type="number" value="${r.desConc || ''}" placeholder="Desired" oninput="updateQuenchReagent(${tubeNum}, ${r.id}, 'desConc', this.value)" class="w-full border border-slate-300 rounded p-1 text-[11px]">
+                  <select onchange="updateQuenchReagent(${tubeNum}, ${r.id}, 'desUnit', this.value)" class="border border-slate-300 rounded p-1 text-[10px] bg-white">
+                    <option value="nM" ${r.desUnit === 'nM' ? 'selected' : ''}>nM</option>
+                    <option value="µM" ${r.desUnit === 'µM' ? 'selected' : ''}>µM</option>
+                    <option value="mM" ${r.desUnit === 'mM' ? 'selected' : ''}>mM</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+      });
+      container.innerHTML = html;
+      calcQuenchFlow();
+    }
+
+    function addQuenchReagent(tubeNum) {
+      const list = tubeNum === 1 ? quenchTube1 : quenchTube2;
+      list.push({ id: Date.now() + Math.random(), name: `Reagent ${list.length + 1}`, stockConc: 100, stockUnit: 'µM', desConc: 10, desUnit: 'µM' });
+      renderQuenchReagents(tubeNum);
+    }
+
+    function removeQuenchReagent(tubeNum, id) {
+      if(tubeNum === 1) quenchTube1 = quenchTube1.filter(r => r.id !== id);
+      else quenchTube2 = quenchTube2.filter(r => r.id !== id);
+      renderQuenchReagents(tubeNum);
+    }
+
+    function updateQuenchReagent(tubeNum, id, field, val) {
+      const list = tubeNum === 1 ? quenchTube1 : quenchTube2;
+      const item = list.find(r => r.id === id);
+      if(item) {
+        if(field === 'stockConc' || field === 'desConc') item[field] = parseFloat(val) || 0;
+        else item[field] = val;
+      }
+      calcQuenchFlow();
+    }
+
     function calcQuenchFlow() {
-      const name1 = document.getElementById('quench-name-1').value || 'Reagent A';
-      const desConc1 = parseFloat(document.getElementById('quench-des-conc-1').value) || 0;
-      const desUnit1 = document.getElementById('quench-des-unit-1').value;
-      const stockConc1 = parseFloat(document.getElementById('quench-stock-conc-1').value) || 0;
-      const stockUnit1 = document.getElementById('quench-stock-unit-1').value;
-      const vol1 = parseFloat(document.getElementById('quench-vol-1').value) || 260;
-
-      const name2 = document.getElementById('quench-name-2').value || 'Reagent B';
-      const desConc2 = parseFloat(document.getElementById('quench-des-conc-2').value) || 0;
-      const desUnit2 = document.getElementById('quench-des-unit-2').value;
-      const stockConc2 = parseFloat(document.getElementById('quench-stock-conc-2').value) || 0;
-      const stockUnit2 = document.getElementById('quench-stock-unit-2').value;
-      const vol2 = parseFloat(document.getElementById('quench-vol-2').value) || 260;
-
+      const vol1 = parseFloat(document.getElementById('quench-vol-1')?.value) || 260;
+      const vol2 = parseFloat(document.getElementById('quench-vol-2')?.value) || 260;
       const recipe1El = document.getElementById('quench-recipe-1');
       const recipe2El = document.getElementById('quench-recipe-2');
       const mixedEl = document.getElementById('quench-mixed-result');
@@ -1546,69 +2268,125 @@
         return val;
       };
 
-      // Calculate Tube 1
-      let t1Ok = false;
-      if (desConc1 > 0 && stockConc1 > 0 && vol1 > 0) {
-        const desNm = toNm(desConc1, desUnit1);
-        const stockNm = toNm(stockConc1, stockUnit1);
-        if (desNm > stockNm) {
-          recipe1El.innerHTML = '<span class="text-red-500 font-bold">Error: Desired > Stock</span>';
-        } else {
-          const vStock = (desNm * vol1) / stockNm;
-          const vBuffer = vol1 - vStock;
-          recipe1El.innerHTML = `
-            <div>Stock needed: <span class="font-bold text-indigo-600">${vStock.toFixed(2)} µL</span></div>
-            <div>Buffer needed: <span class="font-bold text-slate-700">${vBuffer.toFixed(2)} µL</span></div>
-          `;
-          t1Ok = true;
-        }
-      } else {
-        recipe1El.innerHTML = '<span class="text-slate-400">Enter concentrations.</span>';
-      }
+      const calcTube = (list, vol, recipeEl) => {
+        let totalStockVol = 0;
+        let detailsHtml = '';
+        let ok = true;
 
-      // Calculate Tube 2
-      let t2Ok = false;
-      if (desConc2 > 0 && stockConc2 > 0 && vol2 > 0) {
-        const desNm = toNm(desConc2, desUnit2);
-        const stockNm = toNm(stockConc2, stockUnit2);
-        if (desNm > stockNm) {
-          recipe2El.innerHTML = '<span class="text-red-500 font-bold">Error: Desired > Stock</span>';
-        } else {
-          const vStock = (desNm * vol2) / stockNm;
-          const vBuffer = vol2 - vStock;
-          recipe2El.innerHTML = `
-            <div>Stock needed: <span class="font-bold text-indigo-600">${vStock.toFixed(2)} µL</span></div>
-            <div>Buffer needed: <span class="font-bold text-slate-700">${vBuffer.toFixed(2)} µL</span></div>
-          `;
-          t2Ok = true;
-        }
-      } else {
-        recipe2El.innerHTML = '<span class="text-slate-400">Enter concentrations.</span>';
-      }
+        list.forEach(r => {
+          if (r.desConc > 0 && r.stockConc > 0) {
+            const desNm = toNm(r.desConc, r.desUnit);
+            const stockNm = toNm(r.stockConc, r.stockUnit);
+            const preMixNm = desNm * 2;
+            if (preMixNm > stockNm) {
+              detailsHtml += `<div class="text-red-500 font-bold">${r.name}: Pre-mix conc (${(preMixNm/1000).toFixed(1)}µM) > Stock!</div>`;
+              ok = false;
+            } else {
+              const vStock = (preMixNm * vol) / stockNm;
+              totalStockVol += vStock;
+              detailsHtml += `<div>${r.name}: <span class="font-bold text-indigo-600">${vStock.toFixed(2)} µL</span> stock</div>`;
+            }
+          }
+        });
 
-      // Mixed Results (1:1 mixing, so final conc = desired / 2)
+        const vBuffer = vol - totalStockVol;
+        if (vBuffer < 0) {
+          detailsHtml += `<div class="text-red-500 font-bold mt-1">Error: Stock vol (${totalStockVol.toFixed(1)}µL) exceeds tube vol!</div>`;
+          ok = false;
+        } else {
+          detailsHtml += `<div class="border-t border-slate-200 pt-1 mt-1 font-bold text-slate-800">Buffer volume: <span class="text-emerald-600">${vBuffer.toFixed(2)} µL</span></div>`;
+        }
+
+        if (recipeEl) recipeEl.innerHTML = detailsHtml || '<span class="text-slate-400">Enter reagent details above.</span>';
+        return ok;
+      };
+
+      const t1Ok = calcTube(quenchTube1, vol1, recipe1El);
+      const t2Ok = calcTube(quenchTube2, vol2, recipe2El);
+
       if (t1Ok || t2Ok) {
-        let mixedHtml = '<div class="text-center font-bold mb-2 text-indigo-700 uppercase tracking-wide">Reacting Mixed State (1:1 Ratio)</div><div class="space-y-1">';
-        if (t1Ok) {
-          const finalNm = toNm(desConc1, desUnit1) / 2;
-          let finalStr = '';
-          if (finalNm >= 1000000) finalStr = `${(finalNm / 1000000).toFixed(3)} mM`;
-          else if (finalNm >= 1000) finalStr = `${(finalNm / 1000).toFixed(2)} µM`;
-          else finalStr = `${finalNm.toFixed(1)} nM`;
-          mixedHtml += `<div>[${name1}]<sub>final</sub> = <span class="font-bold text-emerald-600">${finalStr}</span></div>`;
-        }
-        if (t2Ok) {
-          const finalNm = toNm(desConc2, desUnit2) / 2;
-          let finalStr = '';
-          if (finalNm >= 1000000) finalStr = `${(finalNm / 1000000).toFixed(3)} mM`;
-          else if (finalNm >= 1000) finalStr = `${(finalNm / 1000).toFixed(2)} µM`;
-          else finalStr = `${finalNm.toFixed(1)} nM`;
-          mixedHtml += `<div>[${name2}]<sub>final</sub> = <span class="font-bold text-emerald-600">${finalStr}</span></div>`;
-        }
+        let mixedHtml = '<div class="text-center font-bold mb-1 text-indigo-800 uppercase tracking-wide text-[11px]">Reacting Mixed State (1:1 Ratio)</div><div class="flex flex-wrap justify-center gap-x-4 gap-y-1">';
+        quenchTube1.forEach(r => {
+          if(r.desConc > 0) mixedHtml += `<div>[${r.name}]<sub>final</sub> = <span class="font-bold text-emerald-600">${r.desConc} ${r.desUnit}</span></div>`;
+        });
+        quenchTube2.forEach(r => {
+          if(r.desConc > 0) mixedHtml += `<div>[${r.name}]<sub>final</sub> = <span class="font-bold text-emerald-600">${r.desConc} ${r.desUnit}</span></div>`;
+        });
         mixedHtml += '</div>';
-        mixedEl.innerHTML = mixedHtml;
-      } else {
+        if (mixedEl) mixedEl.innerHTML = mixedHtml;
+      } else if (mixedEl) {
         mixedEl.innerHTML = '<span class="text-slate-500">Mixed state will be shown here.</span>';
+      }
+    }
+
+    function renderQuenchPresetsDropdown() {
+      const sel = document.getElementById('quench-preset-select');
+      if(!sel) return;
+      let html = '<option value="">-- Select Preset --</option>';
+      quenchPresets.forEach(p => {
+        html += `<option value="${p.name}">${p.name}</option>`;
+      });
+      sel.innerHTML = html;
+    }
+
+    async function saveQuenchPreset() {
+      const name = prompt("Enter a name for this Quench Flow preset:");
+      if (!name || !name.trim()) return;
+      const presetName = name.trim();
+      const vol1 = parseFloat(document.getElementById('quench-vol-1')?.value) || 260;
+      const vol2 = parseFloat(document.getElementById('quench-vol-2')?.value) || 260;
+      const payload = { tube1: quenchTube1, tube2: quenchTube2, vol1, vol2 };
+      try {
+        await fetch(GAS_WEB_APP_URL, {
+          method: 'POST',
+          body: JSON.stringify({
+            action: 'saveSetting',
+            settingType: 'QuenchPreset',
+            settingKey: presetName,
+            settingValue: JSON.stringify(payload)
+          })
+        });
+        const existing = quenchPresets.find(p => p.name === presetName);
+        if(existing) existing.data = payload;
+        else quenchPresets.push({ name: presetName, data: payload });
+        renderQuenchPresetsDropdown();
+        document.getElementById('quench-preset-select').value = presetName;
+        alert(`Preset "${presetName}" saved!`);
+      } catch(e) {
+        alert("Failed to save preset.");
+      }
+    }
+
+    function loadQuenchPreset(name) {
+      if(!name) return;
+      const p = quenchPresets.find(x => x.name === name);
+      if(!p || !p.data) return;
+      quenchTube1 = p.data.tube1 || [];
+      quenchTube2 = p.data.tube2 || [];
+      if(document.getElementById('quench-vol-1')) document.getElementById('quench-vol-1').value = p.data.vol1 || 260;
+      if(document.getElementById('quench-vol-2')) document.getElementById('quench-vol-2').value = p.data.vol2 || 260;
+      renderQuenchReagents(1);
+      renderQuenchReagents(2);
+    }
+
+    async function deleteQuenchPreset() {
+      const sel = document.getElementById('quench-preset-select');
+      const name = sel.value;
+      if(!name) return alert("Select a preset to delete first.");
+      if(!confirm(`Delete preset "${name}"?`)) return;
+      try {
+        await fetch(GAS_WEB_APP_URL, {
+          method: 'POST',
+          body: JSON.stringify({
+            action: 'deleteSetting',
+            settingType: 'QuenchPreset',
+            settingKey: name
+          })
+        });
+        quenchPresets = quenchPresets.filter(p => p.name !== name);
+        renderQuenchPresetsDropdown();
+      } catch(e) {
+        alert("Failed to delete preset.");
       }
     }
 
@@ -1964,6 +2742,8 @@
       }
       listEl.innerHTML = listHtml;
       renderForms();
+      renderPhones();
+      renderPdbs();
     }
 
     function renderForms() {
@@ -2011,6 +2791,88 @@
       } catch(e) {
         alert("Failed.");
       }
+    }
+
+    function renderPhones() {
+      const tbody = document.getElementById('phone-tbody');
+      if(!tbody) return;
+      let html = '';
+      if(importantPhones.length === 0) {
+        html = `<tr><td colspan="5" class="p-3 text-center text-slate-400">No phone contacts added yet.</td></tr>`;
+      } else {
+        importantPhones.forEach(p => {
+          html += `
+            <tr class="hover:bg-slate-50">
+              <td class="p-2 font-bold text-slate-800">${p.name}</td>
+              <td class="p-2 text-emerald-700 font-bold font-mono">${p.phone}</td>
+              <td class="p-2 text-slate-600">${p.desc}</td>
+              <td class="p-2 text-slate-500">${p.email ? `<a href="mailto:${p.email}" class="text-blue-500 hover:underline">${p.email}</a>` : '-'}</td>
+              <td class="p-2 text-right">
+                <button onclick="deletePhone('${p.id}')" class="text-red-500 hover:text-red-700 font-bold">&times;</button>
+              </td>
+            </tr>`;
+        });
+      }
+      tbody.innerHTML = html;
+    }
+
+    function openPhoneModal() {
+      document.getElementById('form-add-phone').reset();
+      openModal('phone-modal');
+    }
+
+    async function deletePhone(id) {
+      if(!confirm("Delete this phone contact?")) return;
+      try {
+        await fetch(GAS_WEB_APP_URL, {
+          method: 'POST',
+          body: JSON.stringify({ action: 'deleteSetting', settingType: 'Phone', settingKey: id })
+        });
+        importantPhones = importantPhones.filter(p => p.id !== id);
+        renderPhones();
+      } catch(e) { alert('Failed.'); }
+    }
+
+    function renderPdbs() {
+      const tbody = document.getElementById('pdb-tbody');
+      if(!tbody) return;
+      let html = '';
+      if(importantPdbs.length === 0) {
+        html = `<tr><td colspan="5" class="p-3 text-center text-slate-400">No PDB records added yet.</td></tr>`;
+      } else {
+        importantPdbs.forEach(p => {
+          const rcsbUrl = p.link || `https://www.rcsb.org/structure/${p.code}`;
+          const fileLink = p.fileContent ? `<a href="${p.fileContent}" download="${p.code}.pdb" class="text-blue-600 font-bold bg-blue-50 border border-blue-200 px-2 py-0.5 rounded text-[10px] hover:bg-blue-100">💾 .pdb</a>` : '<span class="text-slate-400">-</span>';
+          html += `
+            <tr class="hover:bg-slate-50">
+              <td class="p-2 font-bold text-slate-800">${p.name} <span class="text-[10px] font-mono bg-blue-100 text-blue-800 px-1 py-0.5 rounded ml-1">${p.code}</span></td>
+              <td class="p-2 text-slate-600 max-w-xs whitespace-normal">${p.desc || '-'}</td>
+              <td class="p-2"><a href="${rcsbUrl}" target="_blank" class="text-blue-600 font-bold hover:underline">RCSB ${p.code} ↗</a></td>
+              <td class="p-2">${fileLink}</td>
+              <td class="p-2 text-right">
+                <button onclick="deletePdb('${p.id}')" class="text-red-500 hover:text-red-700 font-bold">&times;</button>
+              </td>
+            </tr>`;
+        });
+      }
+      tbody.innerHTML = html;
+    }
+
+    function openPdbModal() {
+      document.getElementById('form-add-pdb').reset();
+      openModal('pdb-modal');
+    }
+
+    async function deletePdb(id) {
+      if(!confirm("Delete this PDB record?")) return;
+      try {
+        await fetch(GAS_WEB_APP_URL, {
+          method: 'POST',
+          body: JSON.stringify({ action: 'deleteSetting', settingType: 'PDB', settingKey: id })
+        });
+        importantPdbs = importantPdbs.filter(p => p.id !== id);
+        renderPdbs();
+      } catch(e) { alert('Failed.'); }
     }
 
     function convertKinTekFile() {
@@ -2103,5 +2965,4 @@
   </script>
 </body>
 </html>
-
 
