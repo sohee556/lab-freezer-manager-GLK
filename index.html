@@ -628,6 +628,61 @@
   <div id="image-viewer-modal" class="hidden fixed inset-0 bg-slate-900 bg-opacity-90 flex items-center justify-center p-4 z-50"><div class="relative"><button onclick="closeModal('image-viewer-modal')" class="absolute -top-10 right-0 text-white text-3xl font-bold">&times;</button><img id="viewer-img" src="" class="max-w-full max-h-[80vh] rounded shadow-2xl border-4 border-white"></div></div>
   
   <div id="create-pillbox-modal" class="hidden fixed inset-0 bg-slate-900 bg-opacity-60 flex items-center justify-center p-4 z-50"><div class="bg-white rounded-xl shadow-2xl w-full max-w-sm overflow-hidden"><div class="bg-indigo-600 p-4 text-white flex justify-between items-center"><h2 class="text-lg font-bold">Create Pillbox</h2><button onclick="closeModal('create-pillbox-modal')" class="text-2xl">&times;</button></div><form id="form-create-pillbox" class="p-6 space-y-4"><div><label class="block text-sm font-bold text-slate-700 mb-1">Pillbox Name</label><input type="text" id="input-pillbox-name" required class="w-full border border-slate-300 rounded p-2"></div><div><label class="block text-sm font-bold text-slate-700 mb-1">Date</label><input type="date" id="input-pillbox-date" required class="w-full border border-slate-300 rounded p-2"></div><div class="flex justify-end space-x-3"><button type="button" onclick="closeModal('create-pillbox-modal')" class="px-4 py-2 bg-slate-100 rounded">Cancel</button><button type="submit" id="btn-create-pillbox" class="px-4 py-2 bg-indigo-600 text-white rounded">Create</button></div></form></div></div>
+    <div id="edit-protein-modal" class="hidden fixed inset-0 bg-slate-900 bg-opacity-70 flex items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden border border-slate-200">
+      <div class="bg-indigo-900 p-4 text-white flex justify-between items-center">
+        <h2 class="text-lg font-bold" id="edit-prot-title">Edit Protein Entry</h2>
+        <button onclick="closeModal('edit-protein-modal')" class="text-2xl font-bold hover:text-indigo-200">&times;</button>
+      </div>
+      <form id="form-edit-protein" class="p-6 space-y-4">
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1 uppercase">Classification</label>
+            <select id="input-edit-prot-type" class="w-full border border-slate-300 rounded p-2 bg-white font-bold text-slate-700 text-sm">
+              <option value="Protein">Protein</option>
+              <option value="Glycerol Stock">Glycerol Stock</option>
+              <option value="Dye">Dye</option>
+              <option value="Compound">Compound</option>
+              <option value="Cell">Cell</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1 uppercase">Owner / Color Tag</label>
+            <select id="input-edit-prot-owner" class="w-full border border-slate-300 rounded p-2 bg-white text-sm"></select>
+          </div>
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1 uppercase">Protein / Item Name</label>
+          <input type="text" id="input-edit-prot-name" required class="w-full border border-slate-300 rounded p-2 text-sm font-bold text-slate-900">
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1 uppercase">Concentration</label>
+            <input type="text" id="input-edit-prot-conc" class="w-full border border-slate-300 rounded p-2 text-sm">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1 uppercase">Origin / Source</label>
+            <input type="text" id="input-edit-prot-origin" class="w-full border border-slate-300 rounded p-2 text-sm">
+          </div>
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1 uppercase">Description / Notes</label>
+          <textarea id="input-edit-prot-notes" rows="2" class="w-full border border-slate-300 rounded p-2 text-sm"></textarea>
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1 uppercase">Freeze Date</label>
+          <input type="date" id="input-edit-prot-date" class="w-full border border-slate-300 rounded p-2 text-sm">
+        </div>
+        <div class="flex justify-between items-center pt-2 border-t border-slate-100">
+          <button type="button" onclick="deleteCurrentProtein()" class="px-3 py-2 bg-red-50 hover:bg-red-100 border border-red-200 text-red-700 rounded-lg text-xs font-bold transition-colors">🗑️ Delete Entry</button>
+          <div class="flex space-x-2">
+            <button type="button" onclick="closeModal('edit-protein-modal')" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 rounded-lg text-xs font-bold text-slate-600">Cancel</button>
+            <button type="submit" id="btn-save-edit-prot" class="px-4 py-2 bg-indigo-700 hover:bg-indigo-800 text-white rounded-lg text-xs font-bold shadow-sm transition-colors">Save Changes</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
   <div id="add-protein-modal" class="hidden fixed inset-0 bg-slate-900 bg-opacity-60 flex items-center justify-center p-4 z-50"><div class="bg-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden"><div class="bg-emerald-700 p-4 text-white flex justify-between items-center"><h2 class="text-lg font-bold">Add Item to Freezer Slot</h2><button onclick="closeModal('add-protein-modal')" class="text-2xl">&times;</button></div><form id="form-add-protein" class="p-6 space-y-4"><div class="grid grid-cols-2 gap-4"><div><label class="block text-sm font-bold mb-1">Classification</label><select id="input-prot-item-type" class="w-full border border-slate-300 rounded p-2 bg-white font-bold text-slate-700"><option value="Protein" selected>Protein</option><option value="Glycerol Stock">Glycerol Stock</option><option value="Dye">Dye</option><option value="Compound">Compound</option><option value="Cell">Cell</option></select></div><div><label class="block text-sm font-bold mb-1">Owner</label><select id="input-prot-owner" class="w-full border border-slate-300 rounded p-2 bg-white"></select></div></div><div><label class="block text-sm font-bold mb-1">Name / Identifier</label><input type="text" id="input-prot-name" required class="w-full border border-slate-300 rounded p-2"></div><div class="grid grid-cols-2 gap-4"><div><label class="block text-sm font-bold mb-1">Conc.</label><input type="text" id="input-prot-conc" class="w-full border border-slate-300 rounded p-2"></div><div><label class="block text-sm font-bold mb-1">Origin</label><input type="text" id="input-prot-origin" required class="w-full border border-slate-300 rounded p-2"></div></div><div><label class="block text-sm font-bold mb-1">Notes</label><textarea id="input-prot-notes" rows="2" class="w-full border border-slate-300 rounded p-2"></textarea></div><div><label class="block text-sm font-bold mb-1">Date</label><input type="date" id="input-prot-date" required class="w-full border border-slate-300 rounded p-2"></div><div class="flex justify-end space-x-3"><button type="button" onclick="closeModal('add-protein-modal')" class="px-4 py-2 bg-slate-100 rounded">Cancel</button><button type="submit" id="btn-add-protein" class="px-4 py-2 bg-emerald-700 text-white rounded">Save Item</button></div></form></div></div>
   <div id="add-glycerol-modal" class="hidden fixed inset-0 bg-slate-900 bg-opacity-60 flex items-center justify-center p-4 z-50"><div class="bg-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden"><div class="bg-blue-800 p-4 text-white flex justify-between items-center"><h2 class="text-lg font-bold" id="add-glyc-header">Add Glycerol Stock</h2><button onclick="closeModal('add-glycerol-modal')" class="text-2xl">&times;</button></div><form id="form-add-glycerol" class="p-6 space-y-4"><div class="grid grid-cols-2 gap-4"><div><label class="block text-sm font-bold mb-1">GKD ID</label><input type="text" id="input-glyc-gkd" required class="w-full border border-slate-300 rounded p-2"></div><div><label class="block text-sm font-bold mb-1">Owner</label><select id="input-glyc-owner" required class="w-full border border-slate-300 rounded p-2 bg-white"></select></div></div><div class="grid grid-cols-2 gap-4"><div><label class="block text-sm font-bold mb-1">Construct</label><input type="text" id="input-glyc-construct" required class="w-full border border-slate-300 rounded p-2"></div><div><label class="block text-sm font-bold mb-1">Cell Strain</label><input type="text" id="input-glyc-strain" required class="w-full border border-slate-300 rounded p-2"></div></div><div class="grid grid-cols-2 gap-4"><div><label class="block text-sm font-bold mb-1">Origin</label><input type="text" id="input-glyc-origin" class="w-full border border-slate-300 rounded p-2"></div><div><label class="block text-sm font-bold mb-1">Date</label><input type="date" id="input-glyc-date" required class="w-full border border-slate-300 rounded p-2"></div></div><div><label class="block text-sm font-bold mb-1">Notes</label><textarea id="input-glyc-notes" rows="2" class="w-full border border-slate-300 rounded p-2"></textarea></div><div class="border-t border-slate-100 pt-3"><label class="block text-sm font-bold mb-1">Sequence File (.seq)</label><input type="hidden" id="input-glyc-existing-seq"><input type="file" id="input-glyc-seq" accept=".seq,.txt,.fasta" class="w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"></div><div class="flex justify-end space-x-3 mt-6"><button type="button" onclick="closeModal('add-glycerol-modal')" class="px-4 py-2 bg-slate-100 rounded">Cancel</button><button type="submit" id="btn-add-glycerol" class="px-4 py-2 bg-blue-800 text-white rounded">Save</button></div></form></div></div>
   <div id="add-primer-modal" class="hidden fixed inset-0 bg-slate-900 bg-opacity-60 flex items-center justify-center p-4 z-50"><div class="bg-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden"><div class="bg-indigo-600 p-4 text-white flex justify-between items-center"><h2 class="text-lg font-bold">Add Primer</h2><button onclick="closeModal('add-primer-modal')" class="text-2xl">&times;</button></div><form id="form-add-primer" class="p-6 space-y-4"><div><label class="block text-sm font-bold mb-1">Name</label><input type="text" id="input-prm-name" required class="w-full border border-slate-300 rounded p-2"></div><div><label class="block text-sm font-bold mb-1">Sequence (5' to 3')</label><input type="text" id="input-prm-seq" required class="w-full border border-slate-300 rounded p-2 font-mono uppercase text-sm"></div><div><label class="block text-sm font-bold mb-1">Notes</label><textarea id="input-prm-notes" rows="2" class="w-full border border-slate-300 rounded p-2"></textarea></div><div class="flex justify-end space-x-3 mt-6"><button type="button" onclick="closeModal('add-primer-modal')" class="px-4 py-2 bg-slate-100 rounded">Cancel</button><button type="submit" id="btn-save-primer" class="px-4 py-2 bg-indigo-600 text-white rounded">Save</button></div></form></div></div>
@@ -1927,6 +1982,115 @@ const INITIAL_ORDERS_DATA = [{"id": "ORD-EXCEL-1", "name": "KLHDC1 protein from 
     safeAddListener('form-add-comment', 'submit', async (e) => { e.preventDefault(); const btn = document.getElementById('btn-save-comment'); btn.innerText = "Posting..."; btn.disabled = true; const combinedVal = document.getElementById('input-comment-owner').value; const per = combinedVal ? combinedVal.split('|')[1] : 'Unknown'; const reqId = document.getElementById('input-comment-req-id').value; const txt = document.getElementById('input-comment-text').value; try { await fetch(GAS_WEB_APP_URL, { method: 'POST', body: JSON.stringify({ action: 'addRequestComment', id: reqId, person: per, text: txt }) }); const req = orderRequests.find(r => r.id === reqId); if(req) req.comments.push({ person: per, text: txt, date: new Date().toISOString() }); openComments(reqId); renderOrdering(); } catch (err) { alert('Failed.'); } finally { btn.innerText = "Post"; btn.disabled = false; } });
     safeAddListener('form-add-user', 'submit', async (e) => { e.preventDefault(); const btn = document.getElementById('btn-add-user'); btn.innerText = "..."; btn.disabled = true; const name = document.getElementById('input-new-user').value; const color = document.getElementById('input-new-color').value; try { await fetch(GAS_WEB_APP_URL, { method: 'POST', body: JSON.stringify({ action: 'saveSetting', settingType: 'User', settingKey: name, settingValue: color }) }); team.push({name, color}); document.getElementById('form-add-user').reset(); openSettingsModal(); } catch(err) { alert('Failed.'); } finally { btn.innerText = "Add"; btn.disabled = false; } });
     safeAddListener('form-create-pillbox', 'submit', async (e) => { e.preventDefault(); const btn = document.getElementById('btn-create-pillbox'); btn.innerText = "Saving..."; btn.disabled = true; const payload = { action: 'createPillbox', tray: current.tray, boxNum: current.boxNum, boxName: current.boxName, pillboxNum: current.pillboxNum, pillboxName: document.getElementById('input-pillbox-name').value, pillboxDate: document.getElementById('input-pillbox-date').value }; try { await fetch(GAS_WEB_APP_URL, { method: 'POST', body: JSON.stringify(payload) }); inventory.push(payload); closeModal('create-pillbox-modal'); document.getElementById('form-create-pillbox').reset(); viewBox(current.tray, current.boxNum); } catch (err) { alert('Failed.'); } finally { btn.innerText = "Create"; btn.disabled = false; } });
+    
+    // --- EDIT & DELETE FREEZER PROTEIN LOGIC ---
+    let editingProteinRef = None; // Global reference for item being edited
+
+    function openEditProteinModal(trayId, boxNum, pillboxNum, entryNum) {
+      const item = inventory.find(i => i.tray === trayId && String(i.boxNum) === String(boxNum) && String(i.pillboxNum) === String(pillboxNum) && String(i.entryNum) === String(entryNum));
+      if (!item) return;
+      
+      current.tray = trayId;
+      current.boxNum = String(boxNum);
+      current.pillboxNum = String(pillboxNum);
+      current.entryNum = String(entryNum);
+      current.editingItem = item;
+
+      document.getElementById('edit-prot-title').innerText = `Edit Protein (Tray ${trayId} > Box ${boxNum} > Pillbox ${pillboxNum} > Slot ${entryNum})`;
+      document.getElementById('input-edit-prot-type').value = item.origin ? (item.origin.includes('Glycerol') ? 'Glycerol Stock' : 'Protein') : 'Protein';
+      document.getElementById('input-edit-prot-name').value = item.proteinName || '';
+      document.getElementById('input-edit-prot-conc').value = item.concentration || '';
+      document.getElementById('input-edit-prot-origin').value = item.origin || '';
+      document.getElementById('input-edit-prot-notes').value = item.notes || '';
+      document.getElementById('input-edit-prot-date').value = item.proteinDate || '';
+      
+      populateOwnerDropdowns(trayId);
+      const ownerSelect = document.getElementById('input-edit-prot-owner');
+      if (ownerSelect && item.color) {
+        Array.from(ownerSelect.options).forEach(opt => {
+          if (opt.value.startsWith(item.color)) ownerSelect.value = opt.value;
+        });
+      }
+      
+      openModal('edit-protein-modal');
+    }
+
+    async function deleteCurrentProtein() {
+      if (!current.editingItem) return;
+      if (!confirm(`Delete protein "${current.editingItem.proteinName}" from Tray ${current.tray} Box ${current.boxNum}?`)) return;
+      
+      const itemToDelete = current.editingItem;
+      try {
+        await fetch(GAS_WEB_APP_URL, {
+          method: 'POST',
+          body: JSON.stringify({
+            action: 'saveProtein',
+            tray: itemToDelete.tray,
+            boxNum: itemToDelete.boxNum,
+            pillboxNum: itemToDelete.pillboxNum,
+            entryNum: itemToDelete.entryNum,
+            proteinName: '',
+            color: '#0f172a',
+            concentration: '',
+            origin: '',
+            notes: '',
+            date: ''
+          })
+        });
+        
+        inventory = inventory.filter(i => i !== itemToDelete);
+        closeModal('edit-protein-modal');
+        if (current.tray && current.boxNum) viewBox(current.tray, current.boxNum);
+        renderFreezer();
+      } catch(err) { alert('Failed to delete protein entry.'); }
+    }
+
+    
+    safeAddListener('form-edit-protein', 'submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('btn-save-edit-prot');
+      btn.innerText = "Saving...";
+      btn.disabled = true;
+      
+      const combinedVal = document.getElementById('input-edit-prot-owner').value;
+      const selectedColor = combinedVal ? combinedVal.split('|')[0] : (current.editingItem ? current.editingItem.color : '#0f172a');
+      
+      const payload = {
+        action: 'saveProtein',
+        tray: current.tray,
+        boxNum: current.boxNum,
+        boxName: current.boxName || '',
+        pillboxNum: current.pillboxNum || '1',
+        pillboxName: current.editingItem ? current.editingItem.pillboxName : 'Box 1',
+        pillboxDate: current.editingItem ? current.editingItem.pillboxDate : '',
+        entryNum: current.entryNum || '1',
+        itemType: document.getElementById('input-edit-prot-type').value,
+        proteinName: document.getElementById('input-edit-prot-name').value,
+        color: selectedColor,
+        concentration: document.getElementById('input-edit-prot-conc').value,
+        origin: document.getElementById('input-edit-prot-origin').value,
+        notes: document.getElementById('input-edit-prot-notes').value,
+        date: document.getElementById('input-edit-prot-date').value
+      };
+      
+      try {
+        await fetch(GAS_WEB_APP_URL, { method: 'POST', body: JSON.stringify(payload) });
+        if (current.editingItem) {
+          Object.assign(current.editingItem, {
+            proteinName: payload.proteinName,
+            color: payload.color,
+            concentration: payload.concentration,
+            origin: payload.origin,
+            notes: payload.notes,
+            proteinDate: payload.date
+          });
+        }
+        closeModal('edit-protein-modal');
+        if (current.tray && current.boxNum) viewBox(current.tray, current.boxNum);
+        renderFreezer();
+      } catch(err) { alert('Failed to update protein.'); } finally { btn.innerText = "Save Changes"; btn.disabled = false; }
+    });
+
     safeAddListener('form-add-protein', 'submit', async (e) => { e.preventDefault(); const btn = document.getElementById('btn-add-protein'); btn.innerText = "Saving..."; btn.disabled = true; const combinedVal = document.getElementById('input-prot-owner').value; const selectedColor = combinedVal ? combinedVal.split('|')[0] : '#0f172a'; const payload = { action: 'saveProtein', tray: current.tray, boxNum: current.boxNum, boxName: current.boxName, pillboxNum: current.pillboxNum, pillboxName: current.pillboxName, pillboxDate: current.pillboxDate, entryNum: current.entryNum, itemType: document.getElementById('input-prot-item-type').value, proteinName: document.getElementById('input-prot-name').value, color: selectedColor, concentration: document.getElementById('input-prot-conc').value, origin: document.getElementById('input-prot-origin').value, notes: document.getElementById('input-prot-notes').value, date: document.getElementById('input-prot-date').value }; localStorage.setItem('labOwnerColor', selectedColor); try { await fetch(GAS_WEB_APP_URL, { method: 'POST', body: JSON.stringify(payload) }); inventory.push(payload); closeModal('add-protein-modal'); document.getElementById('form-add-protein').reset(); viewBox(current.tray, current.boxNum); } catch (err) { alert('Failed.'); } finally { btn.innerText = "Save"; btn.disabled = false; } });
     
     function compressImage(file, callback) { const reader = new FileReader(); reader.onload = (e) => { const img = new Image(); img.onload = () => { const canvas = document.createElement('canvas'); const scale = Math.min(400 / img.width, 1); canvas.width = img.width * scale; canvas.height = img.height * scale; const ctx = canvas.getContext('2d'); ctx.drawImage(img, 0, 0, canvas.width, canvas.height); callback(canvas.toDataURL('image/jpeg', 0.6)); }; img.src = e.target.result; }; reader.readAsDataURL(file); }
@@ -2136,7 +2300,31 @@ const INITIAL_ORDERS_DATA = [{"id": "ORD-EXCEL-1", "name": "KLHDC1 protein from 
       document.getElementById('rack-modal-title').innerText = trayId;
       populateOwnerDropdowns(trayId);
       const btnContainer = document.getElementById('box-buttons-container');
-      btnContainer.innerHTML = '';
+      
+      let html = `
+        <div class="col-span-1 md:col-span-2 p-3 bg-gradient-to-r from-slate-200 via-slate-100 to-slate-200 rounded-xl border border-slate-300 shadow-inner">
+          <div class="flex items-center justify-between text-xs font-black text-slate-700 mb-2 uppercase tracking-wider">
+            <span class="flex items-center gap-1.5 text-cyan-900 bg-cyan-100 border border-cyan-300 px-2 py-0.5 rounded font-bold">🚪 Front (Door)</span>
+            <span class="text-slate-500 font-extrabold text-[11px]">◄ Metal Tray Layout & Orientation ►</span>
+            <span class="flex items-center gap-1.5 text-indigo-900 bg-indigo-100 border border-indigo-300 px-2 py-0.5 rounded font-bold">🧊 Back (Interior)</span>
+          </div>
+          <div class="grid grid-cols-4 gap-2 text-center text-[11px] font-bold">
+            <div class="bg-white p-2 rounded-lg border-2 border-cyan-500 shadow-sm text-cyan-950">
+              <div>Box 1</div>
+              <div class="text-[9px] text-cyan-700 font-semibold">(Closest to Door)</div>
+            </div>
+            <div class="bg-white p-2 rounded-lg border border-slate-300 shadow-sm text-slate-700">
+              <div>Box 2</div>
+            </div>
+            <div class="bg-white p-2 rounded-lg border border-slate-300 shadow-sm text-slate-700">
+              <div>Box 3</div>
+            </div>
+            <div class="bg-white p-2 rounded-lg border-2 border-indigo-500 shadow-sm text-indigo-950">
+              <div>Box 4</div>
+              <div class="text-[9px] text-indigo-700 font-semibold">(Deepest / Interior)</div>
+            </div>
+          </div>
+        </div>`;
       
       for(let b = 1; b <= 4; b++) {
         const customName = getBoxName(trayId, b);
@@ -2178,16 +2366,16 @@ const INITIAL_ORDERS_DATA = [{"id": "ORD-EXCEL-1", "name": "KLHDC1 protein from 
           } else {
             items.forEach((item, idx) => {
               boxCardHtml += `
-                <div class="p-2.5 bg-slate-50 hover:bg-cyan-50/50 border border-slate-200 rounded-lg flex items-center justify-between transition-colors">
+                <div onclick="openEditProteinModal('${item.tray}', '${item.boxNum}', '${item.pillboxNum}', '${item.entryNum}')" title="Click to edit or delete protein entry" class="p-2.5 bg-slate-50 hover:bg-cyan-50 border border-slate-200 hover:border-cyan-400 rounded-lg flex items-center justify-between transition-all cursor-pointer group">
                   <div class="overflow-hidden pr-2">
-                    <div class="font-bold text-slate-800 text-xs truncate">${item.proteinName}</div>
-                    <div class="text-[11px] text-slate-500 flex flex-wrap gap-x-2 gap-y-0.5 mt-0.5">
-                      ${item.concentration ? `<span class="font-bold text-indigo-700">${item.concentration}</span>` : ''}
-                      ${item.proteinDate ? `<span class="text-slate-400">Date: ${item.proteinDate}</span>` : ''}
+                    <div class="font-extrabold text-slate-900 text-xs truncate group-hover:text-cyan-900">${item.proteinName} <span class="text-[10px] text-cyan-600 font-semibold opacity-0 group-hover:opacity-100 transition-opacity">✎ Edit</span></div>
+                    <div class="text-[11px] text-slate-600 flex flex-wrap gap-x-2 gap-y-0.5 mt-0.5">
+                      ${item.concentration ? `<span class="font-bold text-indigo-700 bg-indigo-50 border border-indigo-200 px-1.5 py-0.2 rounded text-[10px]">${item.concentration}</span>` : ''}
+                      ${item.proteinDate ? `<span class="text-slate-500">Date: ${item.proteinDate}</span>` : ''}
                       ${item.notes ? `<span class="text-slate-400 truncate max-w-[150px]" title="${item.notes}">${item.notes}</span>` : ''}
                     </div>
                   </div>
-                  <div class="w-3.5 h-3.5 rounded-full shadow-sm shrink-0" style="background-color: ${item.color}"></div>
+                  <div class="w-3.5 h-3.5 rounded-full shadow-sm shrink-0 border border-slate-300" style="background-color: ${item.color}"></div>
                 </div>`;
             });
             boxCardHtml += `
@@ -2198,9 +2386,10 @@ const INITIAL_ORDERS_DATA = [{"id": "ORD-EXCEL-1", "name": "KLHDC1 protein from 
         }
         
         boxCardHtml += `</div></div>`;
-        btnContainer.innerHTML += boxCardHtml;
+        html += boxCardHtml;
       }
       
+      btnContainer.innerHTML = html;
       openModal('rack-modal');
     }
     async function toggleBoxMode(trayId, b) { const mapKey = `${trayId}-${b}`; if (glycMap[mapKey]) { if(confirm(`Unlink Glycerol Box?`)) { delete glycMap[mapKey]; await fetch(GAS_WEB_APP_URL, { method: 'POST', body: JSON.stringify({ action: 'saveSetting', settingType: 'GlycMap', settingKey: mapKey, settingValue: "" }) }); openRackModal(trayId); renderFreezer(); } } else { const glycId = prompt("Assign a Glycerol Box ID to this coordinate:"); if (glycId && glycId.trim() !== "") { glycMap[mapKey] = glycId.trim(); await fetch(GAS_WEB_APP_URL, { method: 'POST', body: JSON.stringify({ action: 'saveSetting', settingType: 'GlycMap', settingKey: mapKey, settingValue: glycId.trim() }) }); openRackModal(trayId); renderFreezer(); } } }
