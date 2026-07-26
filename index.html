@@ -1984,7 +1984,7 @@ const INITIAL_ORDERS_DATA = [{"id": "ORD-EXCEL-1", "name": "KLHDC1 protein from 
     safeAddListener('form-create-pillbox', 'submit', async (e) => { e.preventDefault(); const btn = document.getElementById('btn-create-pillbox'); btn.innerText = "Saving..."; btn.disabled = true; const payload = { action: 'createPillbox', tray: current.tray, boxNum: current.boxNum, boxName: current.boxName, pillboxNum: current.pillboxNum, pillboxName: document.getElementById('input-pillbox-name').value, pillboxDate: document.getElementById('input-pillbox-date').value }; try { await fetch(GAS_WEB_APP_URL, { method: 'POST', body: JSON.stringify(payload) }); inventory.push(payload); closeModal('create-pillbox-modal'); document.getElementById('form-create-pillbox').reset(); viewBox(current.tray, current.boxNum); } catch (err) { alert('Failed.'); } finally { btn.innerText = "Create"; btn.disabled = false; } });
     
     // --- EDIT & DELETE FREEZER PROTEIN LOGIC ---
-    let editingProteinRef = None; // Global reference for item being edited
+    let editingProteinRef = null; // Global reference for item being edited
 
     function openEditProteinModal(trayId, boxNum, pillboxNum, entryNum) {
       const item = inventory.find(i => i.tray === trayId && String(i.boxNum) === String(boxNum) && String(i.pillboxNum) === String(pillboxNum) && String(i.entryNum) === String(entryNum));
